@@ -1,5 +1,8 @@
-# Object file
-*.o
-
-# Ada Library Information
-*.ali
+bin/
+obj/
+/packages/
+riderModule.iml
+/_ReSharper.Caches/
+*.xml
+*.csproj
+*.sln
