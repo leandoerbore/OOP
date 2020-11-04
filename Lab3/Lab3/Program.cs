@@ -17,7 +17,7 @@ namespace Lab3
                 race.CheckIn(new CamelFastWalker());
                 //race.CheckIn(new Papasha());
                 //race.CheckIn(new Broom());
-                // Кулити
+                // Кулити ee
 
                 var winner = race.Winner();
                 Console.WriteLine("Победитель - {0} с временем {1:f2}", winner.Name, winner.Time);
