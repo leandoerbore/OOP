@@ -4,14 +4,14 @@ namespace Shop_lab2
 {
     public class Shop
     {
-        private string _name;
-        private string _address;
-        private int _id;
+        public string Name { get; }
+        public string Address { get; }
+        public int Id { get; }
         public Shop(int id,string name, string address)
         {
-            _id = id;
-            _name = name;
-            _address = address;
+            Id = id;
+            Name = name;
+            Address = address;
         }
 
 
@@ -20,13 +20,6 @@ namespace Shop_lab2
         {
             return _stor;
         }
-        public string GetName()
-        {
-            return _name;
-        }
-        public int GetId()
-        {
-            return _id;
-        }
+        
     }
 }

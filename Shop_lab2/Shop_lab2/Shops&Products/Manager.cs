@@ -1,12 +1,23 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 
 namespace Shop_lab2
 {
     public class Manager
     {
-        public List<Shop> Shops = new List<Shop>();
-        public List<Product> Goods = new List<Product>();
+        private List<Shop> Shops = new List<Shop>();
+        private List<Product> Goods = new List<Product>();
+
+        public string GetNameShop(int idShop)
+        {
+            return Shops[idShop].Name;
+        }
+
+        public string GetNameProduct(int idProduct)
+        {
+            return Goods[idProduct].Name ;
+        }
 
         public void CreateProduct(string name)
         {
@@ -40,28 +51,6 @@ namespace Shop_lab2
                 Shops[idShop].GetStor().Add(new Data(idGoods, price, quantity));
         }
         
-        public void AddGoods(int idShop, int idGoods, int quantity)
-        {
-            CheckQuantity(quantity);
-            CheckProduct(idGoods);
-            CheckShop(idShop);
-            foreach (var i in Shops[idShop].GetStor())
-            {
-                if (i.IdProduct == idGoods)
-                {
-                    i.Quantity += quantity;
-                    i.Price = (int) Goods[idGoods].GetPrice();
-                }
-                break;
-            }
-            Shops[idShop].GetStor().Add(new Data(idGoods, (int) Goods[idGoods].GetPrice(), quantity));
-        }
-        
-        public void SetPriceOnProduct(int idProduct, int price)
-        {
-            CheckProduct(idProduct);
-            Goods[idProduct].SetPrice(price);
-        }
         public void ShowShops()
         {
             if (Shops.Capacity == 0)
@@ -71,7 +60,7 @@ namespace Shop_lab2
             var i = 0;
             foreach (var shop in Shops)
             {
-                Console.WriteLine("id " + i + ") " + shop.GetName());
+                Console.WriteLine("id " + i + ") " + shop.Name);
                 ++i;
             }
         }
@@ -84,7 +73,7 @@ namespace Shop_lab2
             var i = 0;
             foreach (var product in Goods)
             {
-                Console.WriteLine("id " + i + ") " + product.GetName());
+                Console.WriteLine("id " + i + ") " + product.Name);
                 i++;
             }
         }
@@ -97,31 +86,31 @@ namespace Shop_lab2
             var i = 1;
             foreach (var product in Shops[idShop].GetStor())
             {
-                Console.WriteLine(i + ") " + Goods[product.IdProduct].GetName() + " : " + product.Quantity + " : " + product.Price);
+                Console.WriteLine(i + ") " + Goods[product.IdProduct].Name + " : " + product.Quantity + " : " + product.Price);
                 i++;
             }
         }
-        
-        public Tuple<int?, int> FindTheCheapestProduct(int idProduct)
+
+        public (string? nameShop, int? Price) FindTheCheapestProduct(int idProduct)
         {
             CheckProduct(idProduct);
-            int theCheapestPrice = Int32.MaxValue;
-            int? idShop = null;
+            int? theCheapestPrice = null;
+            string? nameShop = null;
             foreach (var shop in Shops)
             {
-                int? price = FindPriceOfProduct(shop.GetId(), idProduct);
+                int? price = FindPriceOfProduct(shop.Id, idProduct);
                 if (price != null)
                 {
-                    if (theCheapestPrice > price)
+                    if (theCheapestPrice == null || theCheapestPrice > price)
                     {
                         theCheapestPrice = (int) price;
-                        idShop = shop.GetId();
+                        nameShop = shop.Name;
                     }
                 }
             }
-            Tuple<int?, int> answer = new Tuple<int?, int>(idShop, theCheapestPrice);
-            return answer;
+            return (nameShop, theCheapestPrice);
         }
+        
         private int? FindPriceOfProduct(int idShop, int idProduct)
         {
             CheckShop(idShop);
@@ -148,21 +137,18 @@ namespace Shop_lab2
                 if (q >= quantity)
                     answer.Add(Shops[idShop].GetStor()[i].IdProduct, quantity);
                 else
-                {
                     answer.Add(Shops[idShop].GetStor()[i].IdProduct,q);
-                }
             }
             return answer;
         }
         
-        //Tuple<idProduct, quantity>
-        public int BuySomeProducts(List<Tuple<int,int>> list, int idShop)
+        public int BuySomeProducts(List<(int idProduct, int quantity)> list, int idShop)
         {
             CheckShop(idShop);
             foreach (var i in list)
             {
-                CheckProduct(i.Item1);
-                CheckQuantity(i.Item2);
+                CheckProduct(i.idProduct);
+                CheckQuantity(i.quantity);
             }
             int cost = 0;
             for (int i = 0; i < list.Count; ++i)
@@ -181,28 +167,25 @@ namespace Shop_lab2
             return cost;
         }
         
-        //Tuple<idProduct, quantity>
-        public Pair FindTheCheapestGoods(List<Tuple<int,int>> list)
+        public string? FindTheCheapestGoods(List<(int idProduct, int quantity)> list)
         {
             foreach (var i in list)
             {
-                CheckProduct(i.Item1);
-                CheckQuantity(i.Item2);
+                CheckProduct(i.idProduct);
+                CheckQuantity(i.quantity);
             }
-            var a = new Pair();
-            int cost = Int32.MaxValue;
-            int temp = -1;
+            int? cost = null;
+            int? temp;
+            string a = "";
             foreach (var i in Shops)
             {
-                temp = BuySomeProducts(list, i.GetId());
-                if (cost != -1 && cost > temp)
+                temp = BuySomeProducts(list, i.Id);
+                if (cost == null || cost > temp)
                 {
                     cost = temp;
-                    a = new Pair(i.GetName(), cost);
+                    a = i.Name;
                 }
             }
-            if (cost == Int32.MaxValue)
-                return null;
             return a;
         }
         private void CheckShop(int idShop)
