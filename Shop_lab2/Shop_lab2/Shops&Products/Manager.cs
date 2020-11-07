@@ -105,22 +105,7 @@ namespace Shop_lab2
                 where FindPriceOfProduct(x.Id, idProduct) != null
                 orderby FindPriceOfProduct(x.Id, idProduct)
                 select (x.Name, FindPriceOfProduct(x.Id, idProduct))).Take(1);
-            //var fullshiit = shiit.OrderBy(k => k.price);
-            
 
-            /*foreach (var shop in Shops)
-            {
-                int? price = FindPriceOfProduct(shop.Id, idProduct);
-                if (price != null)
-                {
-                    if (theCheapestPrice == null || theCheapestPrice > price)
-                    {
-                        theCheapestPrice = (int) price;
-                        nameShop = shop.Name;
-                    }
-                }
-            }*/
-            
             return (shiit.FirstOrDefault().name, shiit.FirstOrDefault().price);
         }
         
@@ -135,16 +120,6 @@ namespace Shop_lab2
                 select x;
 
             return shit.FirstOrDefault()?.Price;
-
-
-            /*foreach (var i in Shops[idShop].GetStor())
-            {
-                if (i.IdProduct == idProduct)
-                {
-                    return i.Price;
-                }
-            }
-            return null;*/
         }
         
         public IEnumerable<(int idProduct, int quantity)> FindProductForSomeCost(int money, int idShop)
@@ -167,26 +142,7 @@ namespace Shop_lab2
                     .Concat(shit.Select(d => d))
                     .OrderBy(x => x.quantity);
 
-
-
-            /*var allShit = shiit.Select(x => (x.idProduct, x.quantity))
-                .Concat(shit.Select(d => (d.idProduct, d.quantity)));*/
-
             return allShit;
-            
-
-
-                /*for(int i = 0; i < Shops[idShop].GetStor().Count; ++i)
-            {
-                int quantity = Shops[idShop].GetStor()[i].Quantity;
-                int price = Shops[idShop].GetStor()[i].Price;
-                int q = money / price;
-                if (q >= quantity)
-                    answer.Add((Shops[idShop].GetStor()[i].IdProduct, quantity));
-                else
-                    answer.Add((Shops[idShop].GetStor()[i].IdProduct,q));
-            }
-            return answer;*/
         }
         
         public int BuySomeProducts(List<(int idProduct, int quantity)> list, int idShop)
