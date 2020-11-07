@@ -1,7 +1,7 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 
 namespace Shop_lab2
 {
@@ -96,8 +96,6 @@ namespace Shop_lab2
         public (string? nameShop, int? Price) FindTheCheapestProduct(int idProduct)
         {
             CheckProduct(idProduct);
-            int? theCheapestPrice = null;
-            string? nameShop = null;
             
             IEnumerable<(string name, int? price)> shiit =
                 (from x in Shops
@@ -124,7 +122,6 @@ namespace Shop_lab2
         public IEnumerable<(int idProduct, int quantity)> FindProductForSomeCost(int money, int idShop)
         {
             CheckShop(idShop);
-            var answer = new List<(int idProduct, int quantity)>();
 
             IEnumerable<(int idProduct, int quantity)> shiit =
                 from x in Shops[idShop].GetStor()
@@ -154,19 +151,7 @@ namespace Shop_lab2
             }
             int cost = 0;
             int flag = 0;
-
-            /*var cost1 =
-                from x in Shops[idShop].GetStor()
-                from d in list
-                where d.idProduct == x.IdProduct
-                select x;
             
-            var shiit = 
-                from x in Shops[idShop].GetStor()
-                from d in cost1
-                where x.IdProduct == d.IdProduct*/
-                    
-
             var idList = new List<( int idProductShop, int quantity )>();
             for (int i = 0; i < list.Count; ++i)
             {
@@ -187,8 +172,8 @@ namespace Shop_lab2
                     return -1;
             }
 
-            foreach (var kek in idList)
-                Shops[idShop].GetStor()[kek.idProductShop].Quantity -= kek.quantity;
+            foreach (var kekw in idList)
+                Shops[idShop].GetStor()[kekw.idProductShop].Quantity -= kekw.quantity;
 
             return cost;
         }
@@ -200,19 +185,12 @@ namespace Shop_lab2
                 CheckProduct(i.idProduct);
                 CheckQuantity(i.quantity);
             }
-            int? cost = null;
-            int? temp;
-            string a = "";
-            foreach (var i in Shops)
-            {
-                temp = BuySomeProducts(list, i.Id);
-                if (cost == null || cost > temp)
-                {
-                    cost = temp;
-                    a = i.Name;
-                }
-            }
-            return a;
+
+            var shiit =
+                (from x in Shops 
+                select (x.Name, BuySomeProducts(list, x.Id))).Take(1);
+
+            return shiit.FirstOrDefault().Name;
         }
         private void CheckShop(int idShop)
         {
