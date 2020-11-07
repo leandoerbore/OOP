@@ -2,7 +2,7 @@
 {
     public class Data
     {
-        public int IdProduct { get; set; }
+        public int IdProduct { get; }
         public int Price { get; set; }
         public int Quantity { get; set; }
         public Data(int idProduct, int price, int quantity)
