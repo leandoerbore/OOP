@@ -9,7 +9,6 @@ namespace Shop_lab2
         {
 
             var Manager = new Manager();
-            Dictionary<int, int> answer;
             int idShop;
             int money;
             int idProduct;
@@ -62,14 +61,12 @@ namespace Shop_lab2
                     Console.WriteLine("Задание 2");
                     money = 500;
                     idShop = 0;
-                    answer = Manager.FindProductForSomeCost(money, idShop);
+                    var answer = Manager.FindProductForSomeCost(money, idShop);
                     Console.WriteLine("В магазине {0} на {1}р можно купить: ", Manager.GetNameShop(idShop), money);
                     foreach (var i in answer)
                     {
-                        if (i.Value != 0)
-                        {
-                            Console.WriteLine("{0} : {1}", Manager.GetNameProduct(i.Key), i.Value);
-                        }
+                        if (i.quantity > 0)
+                            Console.WriteLine("{0} : {1}", Manager.GetNameProduct(i.idProduct), i.quantity);
                     }
 
                     // 3 задание
@@ -77,16 +74,17 @@ namespace Shop_lab2
                     Console.WriteLine("Задание 3");
                     idShop = 2;
                     var list3 = new List<(int idProduct,int quantity)>();
-                    list3.Add((0, 10));
-                    list3.Add((1, 15));
+                    list3.Add((2, 10));
+                    list3.Add((3, 15));
                     list3.Add((4, 15));
                     cost = Manager.BuySomeProducts(list3, idShop);
+                    
 
-                    if(cost != -1)
+                    if (cost != -1)
                         Console.WriteLine("Стоимость покупки всех товаров: " + cost);
                     else
                         Console.WriteLine("Ошибка, нет такого кол-ва товара");
-                    
+
                     // 4 Задание
                     Console.WriteLine();
                     Console.WriteLine("Задание 4");

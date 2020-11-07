@@ -1,6 +1,7 @@
 ﻿#nullable enable
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Shop_lab2
 {
@@ -84,6 +85,7 @@ namespace Shop_lab2
             if(Shops[idShop].GetStor().Capacity <= 0)
                 throw new Exceptions.ExceptionZeroProducts("В магазине еще нет продуктов");
             var i = 1;
+            Console.WriteLine("Имя : Кол-во : Цена");
             foreach (var product in Shops[idShop].GetStor())
             {
                 Console.WriteLine(i + ") " + Goods[product.IdProduct].Name + " : " + product.Quantity + " : " + product.Price);
@@ -125,19 +127,20 @@ namespace Shop_lab2
             return null;
         }
         
-        public Dictionary<int, int> FindProductForSomeCost(int money, int idShop)
+        public List<(int idProduct, int quantity)> FindProductForSomeCost(int money, int idShop)
         {
             CheckShop(idShop);
-            Dictionary<int, int> answer = new Dictionary<int, int>();
+            var answer = new List<(int idProduct, int quantity)>();
+
             for(int i = 0; i < Shops[idShop].GetStor().Count; ++i)
             {
                 int quantity = Shops[idShop].GetStor()[i].Quantity;
                 int price = Shops[idShop].GetStor()[i].Price;
                 int q = money / price;
                 if (q >= quantity)
-                    answer.Add(Shops[idShop].GetStor()[i].IdProduct, quantity);
+                    answer.Add((Shops[idShop].GetStor()[i].IdProduct, quantity));
                 else
-                    answer.Add(Shops[idShop].GetStor()[i].IdProduct,q);
+                    answer.Add((Shops[idShop].GetStor()[i].IdProduct,q));
             }
             return answer;
         }
@@ -151,19 +154,30 @@ namespace Shop_lab2
                 CheckQuantity(i.quantity);
             }
             int cost = 0;
+            int flag = 0;
+            var idList = new List<( int idProductShop, int quantity )>();
             for (int i = 0; i < list.Count; ++i)
             {
                 for (int n = 0; n < Shops[idShop].GetStor().Count; ++n)
                 {
-                    if (Shops[idShop].GetStor()[n].IdProduct == list[i].Item1)
+                    if (Shops[idShop].GetStor()[n].IdProduct == list[i].idProduct)
                     {
-                        if (list[i].Item2 > Shops[idShop].GetStor()[n].Quantity)
+                        if (list[i].quantity > Shops[idShop].GetStor()[n].Quantity)
                             return -1;
-                        cost += Shops[idShop].GetStor()[n].Price * list[i].Item2;
+                        flag = 1;
+                        cost += Shops[idShop].GetStor()[n].Price * list[i].quantity;
+                        idList.Add((n, list[i].quantity));
                         break;
                     }
                 }
+
+                if (flag == 0)
+                    return -1;
             }
+
+            foreach (var kek in idList)
+                Shops[idShop].GetStor()[kek.idProductShop].Quantity -= kek.quantity;
+
             return cost;
         }
         
