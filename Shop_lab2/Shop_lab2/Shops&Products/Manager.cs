@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 
 namespace Shop_lab2
 {
@@ -98,7 +99,16 @@ namespace Shop_lab2
             CheckProduct(idProduct);
             int? theCheapestPrice = null;
             string? nameShop = null;
-            foreach (var shop in Shops)
+            
+            IEnumerable<(string name, int? price)> shiit =
+                (from x in Shops
+                where FindPriceOfProduct(x.Id, idProduct) != null
+                orderby FindPriceOfProduct(x.Id, idProduct)
+                select (x.Name, FindPriceOfProduct(x.Id, idProduct))).Take(1);
+            //var fullshiit = shiit.OrderBy(k => k.price);
+            
+
+            /*foreach (var shop in Shops)
             {
                 int? price = FindPriceOfProduct(shop.Id, idProduct);
                 if (price != null)
@@ -109,30 +119,64 @@ namespace Shop_lab2
                         nameShop = shop.Name;
                     }
                 }
-            }
-            return (nameShop, theCheapestPrice);
+            }*/
+            
+            return (shiit.FirstOrDefault().name, shiit.FirstOrDefault().price);
         }
         
         private int? FindPriceOfProduct(int idShop, int idProduct)
         {
             CheckShop(idShop);
             CheckProduct(idProduct);
-            foreach (var i in Shops[idShop].GetStor())
+
+            var shit =
+                from x in Shops[idShop].GetStor()
+                where x.IdProduct == idProduct
+                select x;
+
+            return shit.FirstOrDefault()?.Price;
+
+
+            /*foreach (var i in Shops[idShop].GetStor())
             {
                 if (i.IdProduct == idProduct)
                 {
                     return i.Price;
                 }
             }
-            return null;
+            return null;*/
         }
         
-        public List<(int idProduct, int quantity)> FindProductForSomeCost(int money, int idShop)
+        public IEnumerable<(int idProduct, int quantity)> FindProductForSomeCost(int money, int idShop)
         {
             CheckShop(idShop);
             var answer = new List<(int idProduct, int quantity)>();
 
-            for(int i = 0; i < Shops[idShop].GetStor().Count; ++i)
+            IEnumerable<(int idProduct, int quantity)> shiit =
+                from x in Shops[idShop].GetStor()
+                where x.Quantity <= money / x.Price
+                select (x.IdProduct, x.Quantity);
+
+            IEnumerable<(int idProduct, int quantity)> shit =
+                from d in Shops[idShop].GetStor()
+                where d.Quantity > money / d.Price
+                select (d.IdProduct, (money / d.Price));
+
+            var allShit =
+                shiit.Select(x => x)
+                    .Concat(shit.Select(d => d))
+                    .OrderBy(x => x.quantity);
+
+
+
+            /*var allShit = shiit.Select(x => (x.idProduct, x.quantity))
+                .Concat(shit.Select(d => (d.idProduct, d.quantity)));*/
+
+            return allShit;
+            
+
+
+                /*for(int i = 0; i < Shops[idShop].GetStor().Count; ++i)
             {
                 int quantity = Shops[idShop].GetStor()[i].Quantity;
                 int price = Shops[idShop].GetStor()[i].Price;
@@ -142,7 +186,7 @@ namespace Shop_lab2
                 else
                     answer.Add((Shops[idShop].GetStor()[i].IdProduct,q));
             }
-            return answer;
+            return answer;*/
         }
         
         public int BuySomeProducts(List<(int idProduct, int quantity)> list, int idShop)
@@ -155,6 +199,19 @@ namespace Shop_lab2
             }
             int cost = 0;
             int flag = 0;
+
+            /*var cost1 =
+                from x in Shops[idShop].GetStor()
+                from d in list
+                where d.idProduct == x.IdProduct
+                select x;
+            
+            var shiit = 
+                from x in Shops[idShop].GetStor()
+                from d in cost1
+                where x.IdProduct == d.IdProduct*/
+                    
+
             var idList = new List<( int idProductShop, int quantity )>();
             for (int i = 0; i < list.Count; ++i)
             {
