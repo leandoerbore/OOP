@@ -13,10 +13,14 @@ namespace Backup
             var manager = new Manager();
             manager.CreateBackup(new List<string>() {@"D:\Test\file1.txt", @"D:\Test\file2.txt"});
             manager.CreateRestorePoint(0, backuppath);
+            manager.AddFileToBackup(0, @"D:\Test\file3.txt");
+            manager.CreateDeltaRestorePoint(0, backuppath);
             manager.CreateRestorePoint(0, backuppath);
-            manager.ShowSizeOfBackup(0);
-            manager.ShowBackupRestorePoints(0);
-            manager.AddFileToBackup("hihihi", 0);
+            manager.AddFileToBackup(0, @"D:\Test\file4.txt");
+            manager.CreateDeltaRestorePoint(0, backuppath);
+            
+            
+            
             
             Console.WriteLine("");
             
