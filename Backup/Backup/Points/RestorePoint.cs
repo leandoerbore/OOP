@@ -4,20 +4,25 @@ using System.IO;
 
 namespace Backup
 {
-    public class RestorePoint
+    public abstract class RestorePoint : IPoints
     {
-        public bool Full { get; set; } = true;
-        public List<int> IndexOfDeltas = new List<int>();
+        //public List<int> IndexOfDeltas { get; set; }
+        public int IndexOfDeltas { get; set; }
         public DateTime _date { get; }
         public long _size { get; set; }
-        public string _path { get; set; }
+        public string _path { get; set; } 
         
         private List<string> _files = new List<string>();
 
         public List<string> files
         {
-            get { return _files; }
-            set { files = value; }
+            get => _files; 
+            set => _files = value; 
+        }
+
+        public RestorePoint()
+        {
+            
         }
         public RestorePoint(string path, long size, DateTime date, List<string> files, int number)
         {
@@ -60,7 +65,7 @@ namespace Backup
             
             return RenamedFiles;
         }
-        
+
         
     }
 }
