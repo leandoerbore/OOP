@@ -8,14 +8,14 @@ namespace Backup
 {
     public class FileBackup
     {
-        public int flagForCleaning { get; set; }= 1;
+        public int flagForCleaning { get; set; } = 1;
         private int _number = 1;
         List<string> _listOfFiles = new List<string>();
 
         public int _id { get; }
         public DateTime _creationTime { get; }
         public long _backupSize { get; private set; } = 0;
-        private List<RestorePoint> _restorePoints = new List<RestorePoint>();
+        private List<IPoints> _restorePoints = new List<IPoints>();
 
         public FileBackup(int id)
         {
@@ -42,7 +42,7 @@ namespace Backup
             switch (answer)
             {
                 case 1:
-                    _restorePoints.Add(new RestorePoint(path, Sizing(_listOfFiles),  DateTime.Now, _listOfFiles, _number));
+                    _restorePoints.Add(new FullPoint(path, Sizing(_listOfFiles),  DateTime.Now, _listOfFiles, _number));
                     _backupSize += _restorePoints.Last()._size;
 
                     for (int i = 0; i < _listOfFiles.Count; ++i)
@@ -55,7 +55,7 @@ namespace Backup
                 
                 case 2:
                     string zipName = path + "restore-point-" + _number + ".zip";
-                    _restorePoints.Add(new RestorePoint(zipName, Sizing(_listOfFiles),  DateTime.Now, _listOfFiles, _number, zipName));
+                    _restorePoints.Add(new FullPoint(zipName, Sizing(_listOfFiles),  DateTime.Now, _listOfFiles, _number, zipName));
                     
                     Directory.CreateDirectory(path + @"\temp\");
                     
@@ -110,8 +110,7 @@ namespace Backup
             switch (answer)
             {
                 case 1:
-                    _restorePoints.Add(new RestorePoint(path, Sizing(_listOfFiles),  DateTime.Now, difList, _number));
-                    _restorePoints.Last().Full = false;
+                    _restorePoints.Add(new IncrementralPoint(path, Sizing(_listOfFiles),  DateTime.Now, difList, _number));
                     _backupSize += _restorePoints.Last()._size;
 
                     for (int i = 0; i < difList.Count; ++i)
@@ -119,14 +118,13 @@ namespace Backup
                         File.Copy(difList[i],  path+_restorePoints.Last().files[i]);
                     }
 
-                    _restorePoints[fullPoint].IndexOfDeltas.Add(_restorePoints.Count - 1);
+                    _restorePoints[fullPoint].IndexOfDeltas += 1;
                     ++_number;
                     break;
                 
                 case 2:
                     string zipName = path + "restore-point-" + _number + ".zip";
-                    _restorePoints.Add(new RestorePoint(zipName, Sizing(_listOfFiles),  DateTime.Now, difList, _number, zipName));
-                    _restorePoints.Last().Full = false;
+                    _restorePoints.Add(new IncrementralPoint(zipName, Sizing(_listOfFiles),  DateTime.Now, difList, _number, zipName));
                     
                     Directory.CreateDirectory(path + @"\temp\");
                     
@@ -143,7 +141,7 @@ namespace Backup
                     _restorePoints.Last()._size = fileInfo.Length;
                     _backupSize += _restorePoints.Last()._size;
                     
-                    _restorePoints[fullPoint].IndexOfDeltas.Add(_restorePoints.Count - 1);
+                    _restorePoints[fullPoint].IndexOfDeltas += 1;
                     ++_number;
                     break;
                 
@@ -158,7 +156,7 @@ namespace Backup
 
             for (int i = _restorePoints.Count - 1; i >= 0; --i)
             {
-                if (_restorePoints[i].Full)
+                if (_restorePoints[i] is FullPoint)
                 {
                     return i;
                 }
@@ -167,7 +165,7 @@ namespace Backup
             return -1;
         }
 
-        private List<string> FindDifference(RestorePoint point)
+        private List<string> FindDifference(IPoints point)
         {
             var dif = new List<string>();
 
@@ -238,7 +236,7 @@ namespace Backup
 
             return dif;
         }
-        private List<string> FindDifferenceInZip(RestorePoint point)
+        private List<string> FindDifferenceInZip(IPoints point)
         {
             var dif = new List<string>();
 
@@ -350,7 +348,7 @@ namespace Backup
                 ++i;
             }
         }
-        public List<RestorePoint> restorePoints
+        public List<IPoints> restorePoints
         {
             get { return _restorePoints; }
         }
@@ -364,54 +362,54 @@ namespace Backup
 
                     if (_restorePoints.Count > len)
                     {
-                        List<RestorePoint> SaveToDel = new List<RestorePoint>();
+                        List<IPoints> SaveToDel = new List<IPoints>();
                         var FirstStepPointsToDelete =
                             from x in _restorePoints
                             where _restorePoints.IndexOf(x) < _restorePoints.Count - len
                             select x;
 
-                        var SecondStepPointsToDelete =
-                            from x in FirstStepPointsToDelete
-                            where x.Full == true && x.IndexOfDeltas.Count == 0
-                            select x;
-
-                        var ThirdStepPointsToDelete =
-                            from x in FirstStepPointsToDelete
-                            where x.Full == true && x.IndexOfDeltas.Count > 0
-                            select x;
-
-                        foreach (var point in ThirdStepPointsToDelete)
                         {
-                            foreach (var index in point.IndexOfDeltas)
+                            var SecondStepPointsToDelete =
+                                from x in FirstStepPointsToDelete
+                                where x is FullPoint && x.IndexOfDeltas == 0
+                                select x;
+
+                            foreach (var point in SecondStepPointsToDelete)
                             {
-                                if (index < _restorePoints.Count - len)
-                                {
-                                    SaveToDel.Add(_restorePoints[index]);
-                                    point.IndexOfDeltas.Remove(index);
-                                }
+                                SaveToDel.Add(point);
                             }
                         }
 
-                        
-                        foreach (var point in SecondStepPointsToDelete)
+                        var ThirdStepPointsToDelete =
+                            from x in FirstStepPointsToDelete
+                            where x is FullPoint && x.IndexOfDeltas > 0
+                            select x;
+
+
+                        int count = 0;
+                        foreach (var point in ThirdStepPointsToDelete)
                         {
-                            SaveToDel.Add(point);
+                            for (int i = 1; i <= point.IndexOfDeltas; ++i)
+                                if (_restorePoints.IndexOf(point) + i < _restorePoints.Count - len)
+                                {
+                                    SaveToDel.Add(_restorePoints[_restorePoints.IndexOf(point) + i]);
+                                    count++;
+                                }
+
+                            point.IndexOfDeltas -= count;
+
+                            if (point.IndexOfDeltas == 0)
+                            {
+                                SaveToDel.Add(point);
+                            }
                         }
-                        
-                        
-                        
-                        
+
                         foreach (var point in SaveToDel)
                         {
                             _restorePoints.Remove(point);
                         }
-
-                        /*var ThirdStepPointsToDelete =
-                            from x in FirstStepPointsToDelete
-                            from y in SecondStepPointsToDelete
-                            where !FirstStepPointsToDelete.Contains(y)
-                            select x;
-                        Console.WriteLine(_restorePoints.IndexOf(ThirdStepPointsToDelete.LastOrDefault()));*/
+                        
+                        //Console.WriteLine(_restorePoints.IndexOf(ThirdStepPointsToDelete.LastOrDefault()));
                     }
                     
 

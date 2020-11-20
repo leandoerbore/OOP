@@ -23,6 +23,7 @@ namespace Backup
             
             
             
+            
             /*manager.CreateRestorePoint(0, backuppath); // Создал full
             manager.AddFileToBackup(0, @"D:\Test\file3.txt");
             manager.CreateDeltaRestorePoint(0, backuppath); // Создал delta
