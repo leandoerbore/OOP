@@ -6,6 +6,8 @@ namespace Backup
 {
     public class RestorePoint
     {
+        public bool Full { get; set; } = true;
+        public List<int> IndexOfDeltas = new List<int>();
         public DateTime _date { get; }
         public long _size { get; set; }
         public string _path { get; set; }

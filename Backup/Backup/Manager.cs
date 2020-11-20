@@ -25,6 +25,11 @@ namespace Backup
         {
             _backups[idBackup].CreateRestorePoint(path);
         }
+        
+        public void CreateDeltaRestorePoint(int idBackup, string path)
+        {
+            _backups[idBackup].CreateDeltaRestorePoint(path);
+        }
         public void ShowSizeOfBackup(int idBackup)
         {
             Console.WriteLine(_backups[idBackup]._backupSize);
@@ -33,7 +38,7 @@ namespace Backup
         {
             Console.WriteLine(_backups[idBackup]._creationTime);
         }
-        public void AddFileToBackup(string path, int idBackup)
+        public void AddFileToBackup(int idBackup, string path )
         {
             _backups[idBackup].AddFilesToBackup(path);
         }
