@@ -178,7 +178,7 @@ namespace Backup
             }
             else if (_listOfFiles.Count < point.files.Count)
             {
-                answer = 1;
+                answer = 2;
                 num = _listOfFiles.Count;
             }
             else // if (_listOfFiles.Count == point.files.Count)
