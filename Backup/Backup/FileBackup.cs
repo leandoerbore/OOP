@@ -75,7 +75,7 @@ namespace Backup
                     break;
             }
 
-            //Cleaning();
+            Cleaning();
         }
         
         public void CreateDeltaRestorePoint(string path)
@@ -149,7 +149,7 @@ namespace Backup
                 
             }
 
-            //Cleaning();
+            Cleaning();
         }
 
         private int FindLastFullRestorePoint()
@@ -354,47 +354,69 @@ namespace Backup
         {
             get { return _restorePoints; }
         }
-
+        
         private void Cleaning()
         {
             switch (flagForCleaning)
             {
                 case 1:
-                    int count = 2;
-                    if (_restorePoints.Count > count)
-                    {
-                        var num = _restorePoints.Count - count;
-                        for (int i = 0; i < num; ++i)
-                        {
-                            if (_restorePoints[i].Full)
-                            {
-                                if (_restorePoints[i].IndexOfDeltas.Count == 0)
-                                {
-                                    restorePoints.Remove(_restorePoints[i]);
-                                }
-                                else
-                                {
-                                    for (int j = 0; j < _restorePoints[i].IndexOfDeltas.Count; ++j)
-                                    {
-                                        if (_restorePoints[i].IndexOfDeltas[j] < num)
-                                        {
-                                            restorePoints.Remove(_restorePoints[j]);
-                                            restorePoints[i].IndexOfDeltas.Remove(restorePoints[i].IndexOfDeltas[j]);
-                                        }
-                                    }
-                                }
+                    int len = 2;
 
-                                if (_restorePoints[i].IndexOfDeltas.Count == 0)
-                                {
-                                    restorePoints.Remove(_restorePoints[i]);
-                                }
-                            }
-                            else
+                    if (_restorePoints.Count > len)
+                    {
+                        List<RestorePoint> SaveToDel = new List<RestorePoint>();
+                        var FirstStepPointsToDelete =
+                            from x in _restorePoints
+                            where _restorePoints.IndexOf(x) < _restorePoints.Count - len
+                            select x;
+
+                        var SecondStepPointsToDelete =
+                            from x in FirstStepPointsToDelete
+                            where x.Full == true && x.IndexOfDeltas.Count == 0
+                            select x;
+
+                        var ThirdStepPointsToDelete =
+                            from x in FirstStepPointsToDelete
+                            where x.Full == true && x.IndexOfDeltas.Count > 0
+                            select x;
+
+                        foreach (var point in ThirdStepPointsToDelete)
+                        {
+                            foreach (var index in point.IndexOfDeltas)
                             {
-                                restorePoints.Remove(_restorePoints[i]);
+                                if (index < _restorePoints.Count - len)
+                                {
+                                    SaveToDel.Add(_restorePoints[index]);
+                                    point.IndexOfDeltas.Remove(index);
+                                }
                             }
                         }
+
+                        
+                        foreach (var point in SecondStepPointsToDelete)
+                        {
+                            SaveToDel.Add(point);
+                        }
+                        
+                        
+                        
+                        
+                        foreach (var point in SaveToDel)
+                        {
+                            _restorePoints.Remove(point);
+                        }
+
+                        /*var ThirdStepPointsToDelete =
+                            from x in FirstStepPointsToDelete
+                            from y in SecondStepPointsToDelete
+                            where !FirstStepPointsToDelete.Contains(y)
+                            select x;
+                        Console.WriteLine(_restorePoints.IndexOf(ThirdStepPointsToDelete.LastOrDefault()));*/
                     }
+                    
+
+                    
+                    
 
                     break;
                 case 2:
