@@ -355,6 +355,7 @@ namespace Backup
             get { return _restorePoints; }
         }
 
+        // qq
         private void Cleaning()
         {
             switch (flagForCleaning)
