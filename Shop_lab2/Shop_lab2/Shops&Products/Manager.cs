@@ -97,13 +97,13 @@ namespace Shop_lab2
         {
             CheckProduct(idProduct);
             
-            IEnumerable<(string name, int? price)> shiit =
+            IEnumerable<(string name, int? price)> theCheapestProductWithPrice =
                 (from x in Shops
                 where FindPriceOfProduct(x.Id, idProduct) != null
                 orderby FindPriceOfProduct(x.Id, idProduct)
                 select (x.Name, FindPriceOfProduct(x.Id, idProduct))).Take(1);
 
-            return (shiit.FirstOrDefault().name, shiit.FirstOrDefault().price);
+            return (theCheapestProductWithPrice.FirstOrDefault().name, theCheapestProductWithPrice.FirstOrDefault().price);
         }
         
         private int? FindPriceOfProduct(int idShop, int idProduct)
@@ -111,12 +111,12 @@ namespace Shop_lab2
             CheckShop(idShop);
             CheckProduct(idProduct);
 
-            var shit =
+            var priceOfProduct =
                 from x in Shops[idShop].GetStor()
                 where x.IdProduct == idProduct
                 select x;
 
-            return shit.FirstOrDefault()?.Price;
+            return priceOfProduct.FirstOrDefault()?.Price;
         }
         
         public IEnumerable<(int idProduct, int quantity)> FindProductForSomeCost(int money, int idShop)
