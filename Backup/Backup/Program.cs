@@ -15,6 +15,12 @@ namespace Backup
             manager.CreateRestorePoint(0, backuppath); // Создал full
             manager.AddFileToBackup(0, @"D:\Test\file3.txt");
             manager.CreateDeltaRestorePoint(0, backuppath); // Создал delta
+            manager.AddFileToBackup(0, @"D:\Test\file4.txt");
+            manager.CreateDeltaRestorePoint(0, backuppath); // Создал delta
+            manager.AddFileToBackup(0, @"D:\Test\file5.txt");
+            manager.CreateDeltaRestorePoint(0, backuppath); // Создал delta
+            
+            manager.CreateRestorePoint(0, backuppath); // Создал full
             manager.CreateRestorePoint(0, backuppath); // Создал full
            
             
@@ -22,7 +28,7 @@ namespace Backup
             
             
             
-            
+            //qq
             /*manager.CreateRestorePoint(0, backuppath); // Создал full
             manager.AddFileToBackup(0, @"D:\Test\file3.txt");
             manager.CreateDeltaRestorePoint(0, backuppath); // Создал delta

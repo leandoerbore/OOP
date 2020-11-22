@@ -187,8 +187,6 @@ namespace Backup
                 num = 0;
             }
                 
-            
-
             switch (answer)
             {
                 case 1:
