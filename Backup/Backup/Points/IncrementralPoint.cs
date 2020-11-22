@@ -5,10 +5,7 @@ namespace Backup
 {
     public class IncrementralPoint : RestorePoint
     {
-        public int IndexOfDeltas { get; set; } = -1;
-        public IncrementralPoint() : base()
-        {
-        }
+        public override int IndexOfDeltas { get; set; } = -1;
         public IncrementralPoint(string path, long size, DateTime date, List<string> files, int number) : base(path, size, date, files, number)
         {
         }
