@@ -62,5 +62,10 @@ namespace Backup
                 Console.WriteLine("---------------------------------------------------");
             }
         }
+
+        public void SetDateToPoint(int idBackup, DateTime date)
+        {
+            _backups[idBackup].SetDateToPoint(date);
+        }
     }
 }
