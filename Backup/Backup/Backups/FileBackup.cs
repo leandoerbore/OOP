@@ -169,31 +169,59 @@ namespace Backup
         {
             var dif = new List<string>();
 
-            int answer;
+            for (int i = 0; i < _listOfFiles.Count; ++i)
+            {
+                FileInfo fileInfoList = new FileInfo(_listOfFiles[i]);
+                var FindFile =
+                    from x in point.files
+                    where x.LastIndexOf(fileInfoList.Name) != -1
+                    select x;
+
+                if (FindFile.Count() == 0)
+                {
+                    dif.Add(_listOfFiles[i]);
+                    continue;
+                }
+
+                FileInfo fileInfoPoint = new FileInfo(point._path+FindFile.First());
+                if (fileInfoList.Length - fileInfoPoint.Length != 0)
+                {
+                    dif.Add(_listOfFiles[i]);
+                }
+            }
+            
+            /*int answer;
             int num;
             if (_listOfFiles.Count > point.files.Count)
             {
                 answer = 1;
                 num = point.files.Count;
             }
-            else if (_listOfFiles.Count < point.files.Count)
+            else 
             {
                 answer = 2;
-                num = _listOfFiles.Count;
-            }
-            else // if (_listOfFiles.Count == point.files.Count)
-            {
-                answer = 3;
                 num = 0;
-            }
-                
-            switch (answer)
+            }*/
+            
+            /*switch (answer)
             {
                 case 1:
                     for (int i = 0; i < point.files.Count; ++i)
                     {
                         FileInfo fileInfoList = new FileInfo(_listOfFiles[i]);
-                        FileInfo fileInfoPoint = new FileInfo(point._path+point.files[i]);
+                        var FindFile =
+                            from x in point.files
+                            where x.LastIndexOf(fileInfoList.Name) != -1
+                            select x;
+
+                        if (FindFile.Count() == 0)
+                        {
+                            dif.Add(_listOfFiles[i]);
+                            break;
+                        }
+
+                        FileInfo fileInfoPoint = new FileInfo(point._path+FindFile.First());
+
                         if (fileInfoList.Length - fileInfoPoint.Length != 0)
                         {
                             dif.Add(_listOfFiles[i]);
@@ -210,7 +238,18 @@ namespace Backup
                     for (int i = 0; i < _listOfFiles.Count; ++i)
                     {
                         FileInfo fileInfoList = new FileInfo(_listOfFiles[i]);
-                        FileInfo fileInfoPoint = new FileInfo(point.files[i]);
+                        var FindFile =
+                            from x in point.files
+                            where x.LastIndexOf(fileInfoList.Name) != -1
+                            select x;
+
+                        if (FindFile.Count() == 0)
+                        {
+                            dif.Add(_listOfFiles[i]);
+                            break;
+                        }
+
+                        FileInfo fileInfoPoint = new FileInfo(point._path+FindFile.First());
                         if (fileInfoList.Length - fileInfoPoint.Length != 0)
                         {
                             dif.Add(_listOfFiles[i]);
@@ -222,7 +261,18 @@ namespace Backup
                     for (int i = 0; i < _listOfFiles.Count; ++i)
                     {
                         FileInfo fileInfoList = new FileInfo(_listOfFiles[i]);
-                        FileInfo fileInfoPoint = new FileInfo(point.files[i]);
+                        var FindFile =
+                            from x in point.files
+                            where x.LastIndexOf(fileInfoList.Name) != -1
+                            select x;
+
+                        if (FindFile.Count() == 0)
+                        {
+                            dif.Add(_listOfFiles[i]);
+                            break;
+                        }
+
+                        FileInfo fileInfoPoint = new FileInfo(point._path+FindFile.First());
                         if (fileInfoList.Length - fileInfoPoint.Length != 0)
                         {
                             dif.Add(_listOfFiles[i]);
@@ -230,15 +280,40 @@ namespace Backup
                     }
                     
                     break;
-            }
+            }*/
 
             return dif;
         }
         private List<string> FindDifferenceInZip(IPoints point)
         {
             var dif = new List<string>();
+            
+            var currentDir = Path.GetDirectoryName(point._path);
+            Directory.CreateDirectory(currentDir + @"\temp\");
+            ZipFile.ExtractToDirectory(point._path, currentDir + @"\temp\");
+            
+            for (int i = 0; i < _listOfFiles.Count; ++i)
+            {
+                FileInfo fileInfoList = new FileInfo(_listOfFiles[i]);
+                var FindFile =
+                    from x in point.files
+                    where x.LastIndexOf(fileInfoList.Name) != -1
+                    select x;
 
-            int answer;
+                if (FindFile.Count() == 0)
+                {
+                    dif.Add(_listOfFiles[i]);
+                    continue;
+                }
+
+                FileInfo fileInfoPoint = new FileInfo(currentDir + @"\temp\"+FindFile.First());
+                if (fileInfoList.Length - fileInfoPoint.Length != 0)
+                {
+                    dif.Add(_listOfFiles[i]);
+                }
+            }
+            
+            /*int answer;
             int num;
             if (_listOfFiles.Count > point.files.Count)
             {
@@ -254,12 +329,9 @@ namespace Backup
             {
                 answer = 3;
                 num = 0;
-            }
-
-            var currentDir = Path.GetDirectoryName(point._path);
-            Directory.CreateDirectory(currentDir + @"\temp\");
-            ZipFile.ExtractToDirectory(point._path, currentDir + @"\temp\");
-            switch (answer)
+            }*/
+            
+            /*switch (answer)
             {
                 case 1:
                     
@@ -303,7 +375,7 @@ namespace Backup
                     }
                     
                     break;
-            }
+            }*/
 
             Directory.Delete(currentDir + @"\temp\", true);
             return dif;
