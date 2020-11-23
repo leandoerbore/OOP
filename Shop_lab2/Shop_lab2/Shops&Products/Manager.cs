@@ -36,27 +36,24 @@ namespace Shop_lab2
             CheckProduct(idGoods);
             CheckShop(idShop);
 
-            bool isAdd = false;
-
-            foreach (var i in Shops[idShop].GetStor())
+            var desiredData = Shops[idShop].GetStor().Find(x => x.IdProduct == idGoods);
+            if (desiredData is null)
             {
-                if (i.IdProduct == idGoods)
-                {
-                    i.Quantity += quantity;
-                    i.Price = price;
-                    isAdd = true;
-                }
-                break;
-            }
-            if(!isAdd)
                 Shops[idShop].GetStor().Add(new Data(idGoods, price, quantity));
+            }
+            else
+            {
+                desiredData.Quantity += quantity;
+                desiredData.Price = price;
+            }
+            
         }
         
         public void ShowShops()
         {
-            if (Shops.Capacity == 0)
+            if (Shops.Count == 0)
             {
-                throw new Exceptions.ExceptionZeroShops("Магазинов еще нет");
+                throw new ExceptionZeroShops("Магазинов еще нет");
             }
             var i = 0;
             foreach (var shop in Shops)
@@ -67,42 +64,42 @@ namespace Shop_lab2
         }
         public void ShowAllProducts()
         {
-            if (Goods.Capacity == 0)
+            if (Goods.Count == 0)
             {
-                throw new Exceptions.ExceptionZeroProducts("Товаров еще нет");
+                throw new ExceptionZeroProducts("Товаров еще нет");
             }
             var i = 0;
             foreach (var product in Goods)
             {
-                Console.WriteLine("id " + i + ") " + product.Name);
-                i++;
+                Console.WriteLine("id {0}) {1} ) ", i, product.Name);
+                ++i;
             }
         }
         
         public void ShowProductsOfShop(int idShop)
         {
             CheckShop(idShop);
-            if(Shops[idShop].GetStor().Capacity <= 0)
-                throw new Exceptions.ExceptionZeroProducts("В магазине еще нет продуктов");
+            if(Shops[idShop].GetStor().Count <= 0)
+                throw new ExceptionZeroProducts("В магазине еще нет продуктов");
             var i = 1;
             Console.WriteLine("Имя : Кол-во : Цена");
             foreach (var product in Shops[idShop].GetStor())
             {
-                Console.WriteLine(i + ") " + Goods[product.IdProduct].Name + " : " + product.Quantity + " : " + product.Price);
-                i++;
+                Console.WriteLine("{0}) {1} : {2} : {3}", i, Goods[product.IdProduct].Name, product.Quantity, product.Price );
+                ++i;
             }
         }
 
         public (string? nameShop, int? Price) FindTheCheapestProduct(int idProduct)
         {
             CheckProduct(idProduct);
-            
-            IEnumerable<(string name, int? price)> theCheapestProductWithPrice =
-                (from x in Shops
-                where FindPriceOfProduct(x.Id, idProduct) != null
-                orderby FindPriceOfProduct(x.Id, idProduct)
-                select (x.Name, FindPriceOfProduct(x.Id, idProduct))).Take(1);
 
+            IEnumerable<(string name, int? price)> theCheapestProductWithPrice = Shops
+                .Select(shop => (shop.Name, FindPriceOfProduct(shop.Id, idProduct)))
+                .Where(shop => shop.Item2 != null)
+                .OrderBy(shop => shop.Item2)
+                .Take(1);
+            
             return (theCheapestProductWithPrice.FirstOrDefault().name, theCheapestProductWithPrice.FirstOrDefault().price);
         }
         
@@ -111,107 +108,99 @@ namespace Shop_lab2
             CheckShop(idShop);
             CheckProduct(idProduct);
 
-            var priceOfProduct =
-                from x in Shops[idShop].GetStor()
-                where x.IdProduct == idProduct
-                select x;
+            var priceOfProduct = Shops[idShop].GetStor()
+                .Find(productData => productData.IdProduct == idProduct);
 
-            return priceOfProduct.FirstOrDefault()?.Price;
+            return priceOfProduct?.Price;
         }
         
         public IEnumerable<(int idProduct, int quantity)> FindProductForSomeCost(int money, int idShop)
         {
             CheckShop(idShop);
 
-            IEnumerable<(int idProduct, int quantity)> shiit =
-                from x in Shops[idShop].GetStor()
-                where x.Quantity <= money / x.Price
-                select (x.IdProduct, x.Quantity);
+            IEnumerable<(int idProduct, int quantity)> productsWeCanBuyAll = Shops[idShop]
+                .GetStor()
+                .FindAll(productData => productData.Quantity <= money / productData.Price)
+                .Select(productData => (productData.IdProduct, productData.Quantity) );
 
-            IEnumerable<(int idProduct, int quantity)> shit =
-                from d in Shops[idShop].GetStor()
-                where d.Quantity > money / d.Price
-                select (d.IdProduct, (money / d.Price));
+            IEnumerable<(int idProduct, int quantity)> productsWeCanBuyPartly = Shops[idShop]
+                .GetStor()
+                .FindAll(productData => productData.Quantity > money / productData.Price)
+                .Select(productData => (productData.IdProduct, money / productData.Price));
 
-            var allShit =
-                shiit.Select(x => x)
-                    .Concat(shit.Select(d => d))
+
+            var allProductsToBuy =
+                productsWeCanBuyAll.Select(x => x)
+                    .Concat(productsWeCanBuyPartly.Select(d => d))
                     .OrderBy(x => x.quantity);
 
-            return allShit;
+            return allProductsToBuy;
         }
         
-        public int BuySomeProducts(List<(int idProduct, int quantity)> list, int idShop)
+        public int? BuySomeProducts(List<(int idProduct, int quantity)> productSheet, int idShop)
         {
             CheckShop(idShop);
-            foreach (var i in list)
+            foreach (var product in productSheet)
             {
-                CheckProduct(i.idProduct);
-                CheckQuantity(i.quantity);
+                CheckProduct(product.idProduct);
+                CheckQuantity(product.quantity);
             }
-            int cost = 0;
-            int flag = 0;
+            int? cost = 0;
             
-            var idList = new List<( int idProductShop, int quantity )>();
-            for (int i = 0; i < list.Count; ++i)
-            {
-                for (int n = 0; n < Shops[idShop].GetStor().Count; ++n)
-                {
-                    if (Shops[idShop].GetStor()[n].IdProduct == list[i].idProduct)
-                    {
-                        if (list[i].quantity > Shops[idShop].GetStor()[n].Quantity)
-                            return -1;
-                        flag = 1;
-                        cost += Shops[idShop].GetStor()[n].Price * list[i].quantity;
-                        idList.Add((n, list[i].quantity));
-                        break;
-                    }
-                }
+            var idList = new List<( int idProduct, int quantity )>();
+            var shopStore = Shops[idShop].GetStor();
 
-                if (flag == 0)
-                    return -1;
+            foreach (var product in productSheet)
+            {
+                var desiredProduct = shopStore.Find(productData => productData.IdProduct == product.idProduct );
+                if (desiredProduct != null && desiredProduct.Quantity > product.quantity)
+                {
+                    cost += desiredProduct.Price * product.quantity;
+                    idList.Add((product.idProduct, product.quantity));
+                }
             }
 
-            foreach (var kekw in idList)
-                Shops[idShop].GetStor()[kekw.idProductShop].Quantity -= kekw.quantity;
+            foreach (var check in idList)
+                shopStore[check.idProduct].Quantity -= check.quantity;
 
             return cost;
         }
         
         public string? FindTheCheapestGoods(List<(int idProduct, int quantity)> list)
         {
-            foreach (var i in list)
+            foreach (var idProductAndQuantity in list)
             {
-                CheckProduct(i.idProduct);
-                CheckQuantity(i.quantity);
+                CheckProduct(idProductAndQuantity.idProduct);
+                CheckQuantity(idProductAndQuantity.quantity);
             }
 
-            var shiit =
-                (from x in Shops 
-                select (x.Name, BuySomeProducts(list, x.Id))).Take(1);
+            IEnumerable<(string name, int? cost)> desiredShop = Shops
+                .Select(shop => (shop.Name, BuySomeProducts(list, shop.Id)))
+                .OrderBy(shop => shop.Item2)
+                .Take(1);
 
-            return shiit.FirstOrDefault().Name;
+            return desiredShop.FirstOrDefault().name;
         }
         private void CheckShop(int idShop)
         {
-            if (!(idShop >= 0 && idShop < Shops.Capacity - 1))
+            if (!(idShop >= 0 && idShop < Shops.Count))
             {
-                throw new Exceptions.ExceptionShopDoesntExist("Ошибка, такого магазина нет");
+                throw new ExceptionShopDoesntExist("Ошибка, такого магазина нет");
             }
         }
 
         private void CheckProduct(int idGoods)
         {
-            if (!(idGoods >= 0 && idGoods < Goods.Capacity - 1))
+            if (!(idGoods >= 0 && idGoods < Goods.Count))
             {
-                throw new Exceptions.ExceptionProductDoesntExist("Ошибка, такого товара нет");
+                throw new ExceptionProductDoesntExist("Ошибка, такого товара нет");
             }
         }
         private void CheckQuantity(int quantity)
         {
             if (quantity < 1)
             {
-                throw new Exceptions.ExceptionQuantity("Ошибка, кол-во товаров меньше нуля");
+                throw new ExceptionQuantity("Ошибка, кол-во товаров меньше нуля");
             }
         }
     
