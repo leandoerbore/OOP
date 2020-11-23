@@ -9,35 +9,25 @@ namespace Backup
     {
         static void Main(string[] args)
         {
+            
+
             string backuppath = @"D:\Test\backups\";
             var manager = new Manager();
-            manager.CreateBackup(new List<string>() {@"D:\Test\file1.txt", @"D:\Test\file2.txt"});
+            manager.CreateBackup(new List<string>() {@"D:\Test\file1.txt"});
             manager.CreateRestorePoint(0, backuppath); // Создал full
-            manager.AddFileToBackup(0, @"D:\Test\file3.txt");
-            manager.CreateDeltaRestorePoint(0, backuppath); // Создал delta
+
+            manager.AddFileToBackup(0,@"D:\Test\file3.txt" );
             manager.CreateRestorePoint(0, backuppath); // Создал full
-           
-            
-            
-            
-            
-            
-            
-            /*manager.CreateRestorePoint(0, backuppath); // Создал full
-            manager.AddFileToBackup(0, @"D:\Test\file3.txt");
-            manager.CreateDeltaRestorePoint(0, backuppath); // Создал delta
+
             manager.CreateRestorePoint(0, backuppath); // Создал full
-            manager.AddFileToBackup(0, @"D:\Test\file4.txt");
-            manager.CreateDeltaRestorePoint(0, backuppath); // Создал delta*/
+
+            manager.CleanRestorePoints(0);
             
-            
-            
-            
+            /*var date = new DateTime(2020, 11, 19);
+            manager.SetDateToPoint(0, date);*/
+
+
             Console.WriteLine("");
-            
-            
-            
-            
         }
     }
 }

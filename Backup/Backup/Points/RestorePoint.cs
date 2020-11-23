@@ -6,9 +6,8 @@ namespace Backup
 {
     public abstract class RestorePoint : IPoints
     {
-        //public List<int> IndexOfDeltas { get; set; }
-        public int IndexOfDeltas { get; set; }
-        public DateTime _date { get; }
+        public abstract int IndexOfDeltas { get; set; }
+        public DateTime _date { get; set; }
         public long _size { get; set; }
         public string _path { get; set; } 
         
