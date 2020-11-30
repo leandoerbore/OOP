@@ -93,7 +93,7 @@ namespace Shop_lab2
         public (string? nameShop, int? Price) FindTheCheapestProduct(int idProduct)
         {
             CheckProduct(idProduct);
-
+            
             IEnumerable<(string name, int? price)> theCheapestProductWithPrice = Shops
                 .Select(shop => (shop.Name, FindPriceOfProduct(shop.Id, idProduct)))
                 .Where(shop => shop.Item2 != null)

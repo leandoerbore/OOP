@@ -18,11 +18,6 @@ namespace Backup
             get => _files; 
             set => _files = value; 
         }
-
-        public RestorePoint()
-        {
-            
-        }
         public RestorePoint(string path, long size, DateTime date, List<string> files, int number)
         {
             _date = date;
