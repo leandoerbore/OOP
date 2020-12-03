@@ -23,12 +23,11 @@ namespace Banks
                     Balance += _interestBalance;
                     _interestBalance = 0;
                     itterationForInterest = 0;
-                    Console.WriteLine("Баланс на счете {0} пополнился: {1:f2}", NumbersAccount, Balance);
+                    //Console.WriteLine("Баланс на счете {0} пополнился: {1:f2}", NumbersAccount, Balance);
                     if (IsDoubtful)
                     {
                         LimitForTransactionsLeft = BankLimitForTransactions;
                     }
-                    //Console.WriteLine("Баланс пополнился: {0:f2}", Balance);
                 }
                 
                 Thread.Sleep(10);
@@ -43,7 +42,7 @@ namespace Banks
                 _interestBalance += (InterestProcent / 365) * Balance / 100;
                 ++itterationForInterest;
                 lastDateCalcInterest = Date.globalDate;
-                //Console.WriteLine("InterestBalance: {0:f2}", _interestBalance);
+                Console.WriteLine("На дебетовом счёте {0} InterestBalance: {1:f2}", NumbersAccount, _interestBalance);
             }
         }
         
@@ -68,6 +67,7 @@ namespace Banks
                     {
                         Console.WriteLine("Ваш лимит превышен за месяц");
                         Console.WriteLine("Ваш оставшийся лимит на транзакции: {0:f2}", LimitForTransactionsLeft);
+                        throw new ExceptionNotEnoughMoney("Недостаточно средств");
                     }
                 }
                 else

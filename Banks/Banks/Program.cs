@@ -13,7 +13,7 @@ namespace Banks
             
             
             // Case №1 Тест на подсчёт процента на остаток счёта
-            {
+            /*{
                 Manager.CreateClientInBank(Tinkoff);
                 
                 Manager.CreateDepositAccount(Tinkoff, 0);
@@ -26,7 +26,31 @@ namespace Banks
                 ChangeTime(31);
                 
                 Thread.Sleep(100);
-
+            }*/
+            
+            
+            // Case №2 Тест на сомнительный счёт 
+            /*{
+                Manager.CreateClientInBank(Tinkoff);
+                Manager.CreateDebitAccount(Tinkoff, 0);
+                Manager.TopUpBalance(Tinkoff);
+                
+                Manager.WithDraw(Tinkoff);
+            }*/
+            
+            // Case №3 Тест на коммисию при пополнении, переводе или снятия со счетов в других банках
+            {
+                Manager.CreateClientInBank(Tinkoff);
+                Manager.CreateDebitAccount(Tinkoff, 0);
+                Manager.TopUpBalance(Sberbank);
+                Manager.CheckBalance(Tinkoff);
+                
+                Manager.CreateClientInBank(Sberbank);
+                Manager.CreateDebitAccount(Sberbank, 0);
+                Manager.Transfer(Sberbank);
+                
+                Manager.CheckBalance(Tinkoff);
+                Manager.CheckBalance(Sberbank);
             }
             
             

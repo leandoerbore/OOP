@@ -135,7 +135,7 @@ namespace Banks
 
             foreach (var account in bank.accounts)
             {
-                Console.WriteLine("Account: {0}, balance: {1:f2} ", account.NumbersAccount, account.Balance);
+                Console.WriteLine("Account: {0}, balance: {1:f2}", account.NumbersAccount, account.Balance);
             }
         }
 
