@@ -13,7 +13,7 @@ namespace Lab3.Races
         
         private List<AirVehicle> _AirVehicles = new List<AirVehicle>();
         private List<GroundVehicle> _GroundVehicle = new List<GroundVehicle>();
-
+        
 
         public void CheckIn(GroundVehicle vehicle)
         {
