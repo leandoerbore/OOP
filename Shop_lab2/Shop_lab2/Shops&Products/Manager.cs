@@ -245,6 +245,6 @@ namespace Shop_lab2
                 throw new ExceptionQuantity("Ошибка, кол-во товаров меньше нуля");
             }
         }
-    
+    //
     }
 }
