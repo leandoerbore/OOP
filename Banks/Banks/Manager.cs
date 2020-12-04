@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Banks.Exceptions;
 
 namespace Banks
 {
@@ -14,25 +13,25 @@ namespace Banks
             var bank = FindBank(NameBank);
             
             bank.clients.Add(new Client());
+            var client = bank.clients.Last();
             
-
-            Console.WriteLine();
+            Console.WriteLine("{0} {1} стал клиентом банка {2}", client.Name, client.Surname, bank.Name);
         }
 
         public static void CreateDepositAccount(string NameBank, int idClient)
         {
             var bank = FindBank(NameBank);
+            Client client = FindClient(bank, idClient);
             var BIC = bank.BIC;
             var condition = bank.conditions;
             var fee = bank.Fee;
             var numbersAccount = bank.CreateRandomAccountNumbers();
-            var isDoubrful = CheckForDoubtful(bank, idClient);
+            var isDoubrful = (client.Passport is null || client.Adress is null) ? true : false;
             var bankLimitForTransactions = bank.LimitForTransactions;
             
             bank.accounts.Add(new DepositAccount(BIC, isDoubrful, condition, fee, numbersAccount, 30, bankLimitForTransactions));
-                
-            var client = bank.clients[idClient];
-            var account = bank.accounts[bank.accounts.Count - 1];
+
+            var account = bank.accounts.Last();
                 
             bank.ConnectClientAndAccount(client,account);
             Console.WriteLine("Для {0} {1} был создан депозитный счёт в банке {2} с номером : {3}", client.Name, client.Surname, bank.Name, account.NumbersAccount);
@@ -41,17 +40,17 @@ namespace Banks
         public static void CreateDebitAccount(string NameBank, int idClient)
         {
             var bank = FindBank(NameBank);
+            Client client = FindClient(bank, idClient);
             int BIC = bank.BIC;
             var interest = bank.Interest;
             var fee = bank.Fee;
             var numbersAccount = bank.CreateRandomAccountNumbers();
-            var isDoubrful = CheckForDoubtful(bank, idClient);
+            var isDoubrful = (client.Passport is null || client.Adress is null) ? true : false;
             var bankLimitForTransactions = bank.LimitForTransactions;
             
             bank.accounts.Add(new DebitAccount(BIC, isDoubrful, interest, fee, numbersAccount, bankLimitForTransactions));
-                
-            var client = bank.clients[idClient];
-            var account = bank.accounts[bank.accounts.Count - 1];
+
+            var account = bank.accounts.Last();
                 
             bank.ConnectClientAndAccount(client,account);
             Console.WriteLine("Для {0} {1} был создан дебетовый счёт в банке {2} с номером : {3}", client.Name, client.Surname, bank.Name, account.NumbersAccount);
@@ -60,18 +59,18 @@ namespace Banks
         public static void CreateCreditAccount(string NameBank, int idClient)
         {
             var bank = FindBank(NameBank);
+            Client client = FindClient(bank, idClient);
             int BIC = bank.BIC;
             var fee = bank.Fee;
             var numbersAccount = bank.CreateRandomAccountNumbers();
-            var isDoubrful = CheckForDoubtful(bank, idClient);
+            var isDoubrful = (client.Passport is null || client.Adress is null) ? true : false;
             var bankLimitForTransactions = bank.LimitForTransactions;
             var bankCreditLimit = bank.CreditLimit;
             var bankCreditFee = bank.CreditFee;
             
             bank.accounts.Add(new CreditAccount(BIC, isDoubrful, fee, numbersAccount, bankLimitForTransactions, bankCreditLimit, bankCreditFee ));
-                
-            var client = bank.clients[idClient];
-            var account = bank.accounts[bank.accounts.Count - 1];
+            
+            var account = bank.accounts.Last();
                 
             bank.ConnectClientAndAccount(client,account);
             Console.WriteLine("Для {0} {1} был создан кредитный счёт в банке {2} с номером : {3}", client.Name, client.Surname, bank.Name, account.NumbersAccount);
@@ -82,10 +81,10 @@ namespace Banks
         public static void AddInformationAboutClientInTheBank(string NameBank, int idClient)
         {
             var bank = FindBank(NameBank);
-            var client = bank.clients[idClient];
+            Client client = FindClient(bank, idClient);
             
             client.AddInformationAboutClient();
-            var clientIsDoubtful = CheckForDoubtful(bank, idClient);
+            var clientIsDoubtful = (client.Passport is null || client.Adress is null) ? true : false;
             var accounts = bank.clientsAndAccounts
                 .FindAll(connection => connection.client == client)
                 .Select(connection => connection.account);
@@ -224,6 +223,31 @@ namespace Banks
                 ++i;
                 Console.WriteLine("{0}) numbers: {1}, balance: {2}", i, account.NumbersAccount, account.Balance);
             }
+        }
+
+        public static Client FindClient(Bank bank, int idClient)
+        {
+            Client client;
+            if (bank.clients.Count > idClient && idClient > -1)
+            {
+                client = bank.clients[idClient];
+                return client;
+            }
+            else
+            {
+                throw new ExceptionClientDoesNotExist("Нет такого клиента");
+            }
+        }
+
+        public static void CanceTransaction(string NameBank)
+        {
+            var bank = FindBank(NameBank);
+            
+            Console.WriteLine("Введите номер счета с которого была произведена транзакция на другой счёт");
+            var numbers = long.Parse(Console.ReadLine());
+            
+            bank.CancleTransaction(numbers);
+            
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading;
-using Banks.Exceptions;
 
 namespace Banks
 {
@@ -8,7 +7,7 @@ namespace Banks
     {
         private Thread _threadLimit;
         private int leftDays = 30;
-        private DateTime createionTimeLimit;
+        private DateTime creationTimeLimit;
         private double BankCreditLimit;
         private double BankCreditFee;
         
@@ -19,14 +18,14 @@ namespace Banks
             _threadLimit.Start();
             BankCreditLimit = creditLimit;
             BankCreditFee = creditFee;
-            createionTimeLimit = DateTime.Now.Date;
+            creationTimeLimit = DateTime.Now.Date;
         }
 
         private void TimeLimit()
         {
             while (true)
             {
-                if (Date.globalDate - createionTimeLimit == TimeSpan.FromDays(30))
+                if (Date.globalDate - creationTimeLimit == TimeSpan.FromDays(30))
                 {
                     if (IsDoubtful)
                     {

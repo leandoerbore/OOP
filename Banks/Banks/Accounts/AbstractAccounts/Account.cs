@@ -31,7 +31,16 @@ namespace Banks
         }
 
         public abstract void WithDraw(double money);
-        
+
+        public void CancelTopUp(double money)
+        {
+            Balance -= money;
+        }
+
+        public void CancelWithDraw(double money)
+        {
+            Balance += money;
+        }
 
     }
 }

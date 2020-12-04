@@ -59,6 +59,7 @@ namespace Banks
                     Console.WriteLine("Какую информацию вы хотите добавить ?");
                     Console.WriteLine("1) Адресс проживания");
                     Console.WriteLine("2) Номер паспорта");
+                    Console.WriteLine("0) Выйти");
                     answer = int.Parse(Console.ReadLine());
                     switch (answer)
                     {
@@ -72,6 +73,9 @@ namespace Banks
                             Passport = long.Parse(Console.ReadLine());
                         
                             break;
+                        case 3:
+
+                            return;
                     }
                 }
                 else if (Adress is null)

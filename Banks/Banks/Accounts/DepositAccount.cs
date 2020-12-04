@@ -79,7 +79,7 @@ namespace Banks
         {
             if (!AccessToWithDraw)
             {
-                Console.WriteLine("Срок депозита еще не закончился");
+                throw new ExceptionDepositTime("Срок депозита еще не закончился");
             }
             else
             {

@@ -5,6 +5,9 @@ namespace Banks
 {
     public abstract class Bank
     {
+        private static List<(Account accountFrom, Account accountTo, double WithDrawMoney, double TopUpMoney)> _logs 
+            = new List<(Account accountFrom, Account accountTo, double WithDrawMoney, double TopUpMoney)>();
+        
         public abstract string Name { get; }
         public abstract double LimitForTransactions { get; }
         public abstract double Fee { get; protected set; }
@@ -17,6 +20,12 @@ namespace Banks
         private List<(int firstInterval, int secondInterval, double interest)> _conditions = new List<(int firstInterval, int secondInterval, double interest)>();
         public double Interest { get; private set; } = 3.5;
 
+        public static List<(Account accountFrom, Account accountTo, double WithDrawMoney, double TopUpMoney)> Logs
+        {
+            get => _logs;
+            set => _logs = value;
+        }
+        
         public List<(int firstInterval, int secondInterval, double interest)> conditions
         {
             get => _conditions;
@@ -92,6 +101,8 @@ namespace Banks
                 {
                     accountFrom.WithDraw(money);
                     accountTo.TopUpBalance(money);
+                    
+                    Logging(accountFrom, accountTo, money, money);
                 }
                 else
                 {
@@ -99,6 +110,8 @@ namespace Banks
                     
                     accountFrom.WithDraw(moneyWithFee);
                     accountTo.TopUpBalance(money);
+                    
+                    Logging(accountFrom, accountTo, moneyWithFee, money);
                 }
             }
             else
@@ -108,6 +121,8 @@ namespace Banks
                 {
                     accountFrom.WithDraw(moneyWithFee);
                     accountTo.TopUpBalance(money);
+                    
+                    Logging(accountFrom, accountTo, moneyWithFee, money);
                 }
                 else
                 {
@@ -115,9 +130,39 @@ namespace Banks
                     
                     accountFrom.WithDraw(moneyWithFee);
                     accountTo.TopUpBalance(money);
+                    
+                    Logging(accountFrom, accountTo, moneyWithFee, money);
                 }
             }
         }
 
+        private void Logging(Account accountFrom, Account accountTo, double WithDrawMoney, double TopUpMoney)
+        {
+            _logs.Add((accountFrom, accountTo, WithDrawMoney, TopUpMoney));
+        }
+        public void CancleTransaction(long numbers)
+        {
+
+            var logsAccount = _logs.FindAll(log => log.accountFrom.NumbersAccount == numbers);
+            if(logsAccount is null)
+                throw new ExceptionAccountDoesNotExist("Счет не найден");
+
+            Console.WriteLine("Какую транзакцию вы хотите отменить?");
+            int i = 0;
+            foreach (var log in logsAccount)
+            {
+                ++i;
+                Console.WriteLine("{0}) numbersFrom: {1} , numbersTo: {2} , withdraw: {3:f2} , topup: {4:f2}", 
+                    i, log.accountFrom.NumbersAccount, log.accountTo.NumbersAccount, log.WithDrawMoney, log.TopUpMoney);
+            }
+
+            var answer = int.Parse(Console.ReadLine());
+            --answer;
+
+            var canceledTransaction = logsAccount[answer];
+
+            canceledTransaction.accountFrom.CancelWithDraw(canceledTransaction.WithDrawMoney);
+            canceledTransaction.accountTo.CancelTopUp(canceledTransaction.TopUpMoney);
+        }
     }
 }

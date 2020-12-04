@@ -26,7 +26,7 @@ namespace Banks
             : base(BIC, isDoubtful, Fee, numbersAccount, bankLimitForTransactions)
         {
             _threadInterest = new Thread(InterestCalc);
-            _threadInterest.Start();
+            _threadInterest.Start(); 
         }
     }
 }
