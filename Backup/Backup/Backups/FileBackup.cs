@@ -11,44 +11,54 @@ namespace Backup
         private int _number = 1;
         List<string> _listOfFiles = new List<string>();
 
-        public int len { get; set; } = 1;
-        public int dateTimeSpan = new TimeSpan(2,0,0,0).Days;
+        public int length { get; set; } = 1;
+        public int dateTimeSpan = 2;
         public long maxSize = 150;
         
 
-        private int creationMode = 1; // Для выбора архивом или раздельно
-        public int Id { get; }
-        public DateTime CreationTime { get; }
-        public long BackupSize { get; private set; } = 0;
+        private int _creationMode ; // Для выбора архивом или раздельно
+        public int id { get; }
+        public DateTime creationTime { get; }
+        public long backupSize { get; private set; } = 0;
         private List<IPoints> _restorePoints = new List<IPoints>();
-
-        public FileBackup(int id)
+        
+        public List<string> listOfFiles
         {
-            Id = id;
-            CreationTime = DateTime.Now;
+            get => _listOfFiles;
+            private set => _listOfFiles = value;
+        }
+
+        public FileBackup(int id, int creationMode)
+        {
+            id = id;
+            creationTime = DateTime.Now;
+            _creationMode = creationMode;
         }
         
-        public FileBackup(int id, List<string> files)
+        public FileBackup(int id, List<string> files, int creationMode)
         {
-            Id = id;
-            CreationTime = DateTime.Now;
+            id = id;
+            creationTime = DateTime.Now;
 
             foreach (var file in files)
             {
                 CheckFile(file);   
                 AddFilesToBackup(file);
             }
+            _creationMode = creationMode;
         }
+
         
+
         public void CreateRestorePoint(string path)
         {
             CheckDirectory(path);
 
-            switch (creationMode)
+            switch (_creationMode)
             {
                 case 1:
                     _restorePoints.Add(new FullPoint(path, Sizing(_listOfFiles),  DateTime.Now, _listOfFiles, _number));
-                    BackupSize += _restorePoints.Last()._size;
+                    backupSize += _restorePoints.Last()._size;
 
                     for (int i = 0; i < _listOfFiles.Count; ++i)
                     {
@@ -81,7 +91,7 @@ namespace Backup
                     
                     FileInfo fileInfo = new FileInfo(zipName);
                     _restorePoints.Last()._size = fileInfo.Length;
-                    BackupSize += _restorePoints.Last()._size;
+                    backupSize += _restorePoints.Last()._size;
                     ++_number;
                     break;
             }
@@ -115,11 +125,11 @@ namespace Backup
                 return;
             }
             
-            switch (creationMode)
+            switch (_creationMode)
             {
                 case 1:
                     _restorePoints.Add(new IncrementralPoint(path, Sizing(_listOfFiles),  DateTime.Now, difList, _number));
-                    BackupSize += _restorePoints.Last()._size;
+                    backupSize += _restorePoints.Last()._size;
 
                     for (int i = 0; i < difList.Count; ++i)
                     {
@@ -149,7 +159,7 @@ namespace Backup
                     
                     FileInfo fileInfo = new FileInfo(zipName);
                     _restorePoints.Last()._size = fileInfo.Length;
-                    BackupSize += _restorePoints.Last()._size;
+                    backupSize += _restorePoints.Last()._size;
                     
                     _restorePoints[fullPoint].IndexOfDeltas += 1;
                     ++_number;
@@ -292,538 +302,7 @@ namespace Backup
             var answer = int.Parse(Console.ReadLine());
             _restorePoints[--answer]._date = date;
         }
-        
-        
-        
-        
-        
-        
-        
-                                             
-        /*public void CleaningDefault()
-        {
-            int count;
-            switch (flagForCleaningDefault)
-            {
-                case 1:
-                    if (_restorePoints.Count > len)
-                    {
-                        List<IPoints> SaveToDelbyLen = new List<IPoints>();
-                        var FirstStepPointsToDeletebyLen =
-                            from x in _restorePoints
-                            where _restorePoints.IndexOf(x) < _restorePoints.Count - len
-                            select x;
-                        
-                        {
-                            var SecondStepPointsToDeletebyLen =
-                                from x in FirstStepPointsToDeletebyLen
-                                where x is FullPoint && x.IndexOfDeltas == 0
-                                select x;
 
-                            foreach (var point in SecondStepPointsToDeletebyLen)
-                            {
-                                SaveToDelbyLen.Add(point);
-                            }
-                        }
-                        
-                        var ThirdStepPointsToDeletebyLen =
-                            from x in FirstStepPointsToDeletebyLen
-                            where x is FullPoint && x.IndexOfDeltas > 0
-                            select x;
-                        
-                        
-                        count = 0;
-                        foreach (var point in ThirdStepPointsToDeletebyLen)
-                        {
-                            for (int i = 1; i <= point.IndexOfDeltas; ++i)
-                                if (_restorePoints.IndexOf(point) + i < _restorePoints.Count - len)
-                                {
-                                    SaveToDelbyLen.Add(_restorePoints[_restorePoints.IndexOf(point) + i]);
-                                    count++;
-                                }
-
-                            point.IndexOfDeltas -= count;
-
-                            if (point.IndexOfDeltas == 0)
-                            {
-                                SaveToDelbyLen.Add(point);
-                            }
-                        }
-
-                        foreach (var point in SaveToDelbyLen)
-                        {
-                            _restorePoints.Remove(point);
-                        }
-                    }
-                    break;
-                case 2:
-                    List<IPoints> SaveToDelbyDate = new List<IPoints>();
-                    var dateNow = DateTime.Now;
-                    
-                    var FirstStepPointsToDeletebyDate =
-                        from x in _restorePoints
-                        where (dateNow - x._date).Days > dateTimeSpan
-                        select x; 
-                    
-                    {
-                        var SecondStepPointsToDeletebyDate =
-                        from x in FirstStepPointsToDeletebyDate
-                        where x is FullPoint && x.IndexOfDeltas < 1
-                        select x;
-                        
-                        foreach (var point in SecondStepPointsToDeletebyDate)
-                        {
-                            SaveToDelbyDate.Add(point);
-                        }
-                    }
-
-                    var ThirdStepPointsToDeletebyDate =
-                        from x in FirstStepPointsToDeletebyDate
-                        where x is FullPoint && x.IndexOfDeltas > 0
-                        select x;
-                    
-                    count = 0;
-                    foreach (var point in ThirdStepPointsToDeletebyDate)
-                    {
-                        int indexOfFullPoint = _restorePoints.IndexOf(point);
-                        for (int i = 1; i <= point.IndexOfDeltas; ++i)
-                        {
-                            if ((dateNow - _restorePoints[indexOfFullPoint + i]._date).Days > dateTimeSpan)
-                            {
-                                SaveToDelbyDate.Add(_restorePoints[indexOfFullPoint + i]);
-                                count++;
-                            }
-                        }
-                        
-                        point.IndexOfDeltas -= count;
-
-                        if (point.IndexOfDeltas == 0)
-                        {
-                            SaveToDelbyDate.Add(point);
-                        }
-                    }
-
-                    foreach (var point in SaveToDelbyDate)
-                    {
-                        _restorePoints.Remove(point);
-                    }
-
-                    break;
-                case 3:
-                    List<IPoints> SaveToDelbySize = new List<IPoints>();
-                    
-                    if (BackupSize < maxSize)
-                        break;
-                    var currentSize = BackupSize;
-
-                    int countPoints = 0;
-                    foreach (var point in _restorePoints)
-                    {
-                        currentSize -= point._size;
-                        ++countPoints;
-
-                        if (currentSize < maxSize)
-                            break;
-                    }
-
-                    var FirstStepPointsToDeletebySize =
-                        from x in _restorePoints
-                        where x is FullPoint && _restorePoints.IndexOf(x) < countPoints
-                        select x;
-
-                    {
-                        var SecondStepPointsToDeletebySize =
-                            from x in FirstStepPointsToDeletebySize
-                            where x.IndexOfDeltas == 0
-                            select x;
-                        
-                        foreach (var point in SecondStepPointsToDeletebySize)
-                        {
-                            SaveToDelbySize.Add(point);
-                        }
-                    }
-
-                    var ThirdStepPointsToDeletebySize =
-                        from x in FirstStepPointsToDeletebySize
-                        where x.IndexOfDeltas > 0
-                        select x;
-
-                    count = 0;
-                    currentSize = BackupSize;
-                    foreach (var point in ThirdStepPointsToDeletebySize)
-                    {
-                        int indexOfFullPoint = _restorePoints.IndexOf(point);
-                        for (int i = 1; i <= point.IndexOfDeltas; ++i)
-                        {
-                            if (currentSize - _restorePoints[indexOfFullPoint + i]._size > BackupSize)
-                            {
-                                SaveToDelbySize.Add(_restorePoints[indexOfFullPoint + i]);
-                                count++;
-                            }
-                        }
-                        
-                        point.IndexOfDeltas -= count;
-                        
-                        if (point.IndexOfDeltas == 0)
-                        {
-                            SaveToDelbySize.Add(point);
-                        }
-                    }
-                    
-                    foreach (var point in SaveToDelbySize)
-                    {
-                        BackupSize -= point._size;
-                        _restorePoints.Remove(point);
-                    }
-                    
-                    break;
-            }
-        }*/
-        
-        /*public void CleaningHybrid()
-        {
-            int count;
-
-            List<IPoints> SaveToDelbyLen = new List<IPoints>();
-            List<IPoints> SaveToDelbyDate = new List<IPoints>();
-            List<IPoints> SaveToDelbySize = new List<IPoints>();
-
-            for(int j = 0; j < flagsForCleaningHybrid.Count; ++j)
-            switch (flagsForCleaningHybrid[j])
-            {
-                case 1:
-                    if (_restorePoints.Count > len)
-                    {
-                        
-                        var FirstStepPointsToDeletebyLen =
-                            from x in _restorePoints
-                            where _restorePoints.IndexOf(x) < _restorePoints.Count - len
-                            select x;
-                        
-                        {
-                            var SecondStepPointsToDeletebyLen =
-                                from x in FirstStepPointsToDeletebyLen
-                                where x is FullPoint && x.IndexOfDeltas == 0
-                                select x;
-
-                            foreach (var point in SecondStepPointsToDeletebyLen)
-                            {
-                                SaveToDelbyLen.Add(point);
-                            }
-                        }
-                        
-                        var ThirdStepPointsToDeletebyLen =
-                            from x in FirstStepPointsToDeletebyLen
-                            where x is FullPoint && x.IndexOfDeltas > 0
-                            select x;
-                        
-                        
-                        count = 0;
-                        foreach (var point in ThirdStepPointsToDeletebyLen)
-                        {
-                            for (int i = 1; i <= point.IndexOfDeltas; ++i)
-                                if (_restorePoints.IndexOf(point) + i < _restorePoints.Count - len)
-                                {
-                                    SaveToDelbyLen.Add(_restorePoints[_restorePoints.IndexOf(point) + i]);
-                                    count++;
-                                }
-
-                            point.IndexOfDeltas -= count;
-
-                            if (point.IndexOfDeltas == 0)
-                            {
-                                SaveToDelbyLen.Add(point);
-                            }
-                        }
-                    }
-                    break;
-                case 2:
-                    
-                    var dateNow = DateTime.Now;
-                    
-                    var FirstStepPointsToDeletebyDate =
-                        from x in _restorePoints
-                        where (dateNow - x._date).Days > dateTimeSpan
-                        select x; 
-                    
-                    {
-                        var SecondStepPointsToDeletebyDate =
-                        from x in FirstStepPointsToDeletebyDate
-                        where x is FullPoint && x.IndexOfDeltas < 1
-                        select x;
-                        
-                        foreach (var point in SecondStepPointsToDeletebyDate)
-                        {
-                            SaveToDelbyDate.Add(point);
-                        }
-                    }
-
-                    var ThirdStepPointsToDeletebyDate =
-                        from x in FirstStepPointsToDeletebyDate
-                        where x is FullPoint && x.IndexOfDeltas > 0
-                        select x;
-                    
-                    count = 0;
-                    foreach (var point in ThirdStepPointsToDeletebyDate)
-                    {
-                        int indexOfFullPoint = _restorePoints.IndexOf(point);
-                        for (int i = 1; i <= point.IndexOfDeltas; ++i)
-                        {
-                            if ((dateNow - _restorePoints[indexOfFullPoint + i]._date).Days > dateTimeSpan)
-                            {
-                                SaveToDelbyDate.Add(_restorePoints[indexOfFullPoint + i]);
-                                count++;
-                            }
-                        }
-                        
-                        point.IndexOfDeltas -= count;
-
-                        if (point.IndexOfDeltas == 0)
-                        {
-                            SaveToDelbyDate.Add(point);
-                        }
-                    }
-
-                    break;
-                case 3:
-                    
-                    if (BackupSize < maxSize)
-                        break;
-                    var currentSize = BackupSize;
-
-                    int countPoints = 0;
-                    foreach (var point in _restorePoints)
-                    {
-                        currentSize -= point._size;
-                        ++countPoints;
-
-                        if (currentSize < maxSize)
-                            break;
-                    }
-
-                    var FirstStepPointsToDeletebySize =
-                        from x in _restorePoints
-                        where x is FullPoint && _restorePoints.IndexOf(x) < countPoints
-                        select x;
-
-                    {
-                        var SecondStepPointsToDeletebySize =
-                            from x in FirstStepPointsToDeletebySize
-                            where x.IndexOfDeltas == 0
-                            select x;
-                        
-                        foreach (var point in SecondStepPointsToDeletebySize)
-                        {
-                            SaveToDelbySize.Add(point);
-                        }
-                    }
-
-                    var ThirdStepPointsToDeletebySize =
-                        from x in FirstStepPointsToDeletebySize
-                        where x.IndexOfDeltas > 0
-                        select x;
-
-                    count = 0;
-                    currentSize = BackupSize;
-                    foreach (var point in ThirdStepPointsToDeletebySize)
-                    {
-                        int indexOfFullPoint = _restorePoints.IndexOf(point);
-                        for (int i = 1; i <= point.IndexOfDeltas; ++i)
-                        {
-                            if (currentSize - _restorePoints[indexOfFullPoint + i]._size > BackupSize)
-                            {
-                                SaveToDelbySize.Add(_restorePoints[indexOfFullPoint + i]);
-                                count++;
-                            }
-                        }
-                        
-                        point.IndexOfDeltas -= count;
-                        
-                        if (point.IndexOfDeltas == 0)
-                        {
-                            SaveToDelbySize.Add(point);
-                        }
-                    }
-                    break;
-            }
-
-            List<List<IPoints>> listPoints = new List<List<IPoints>>() { SaveToDelbyLen, SaveToDelbyDate, SaveToDelbySize };
-            
-            switch (combo)
-            {
-                case 1:
-                    switch (minMax)
-                    {
-                        case 1:
-                            var MaxPoint =
-                                (from x in listPoints
-                                orderby x.Count descending
-                                select x).Take(1);
-
-                            if (MaxPoint.First().Count > 0)
-                            {
-                                foreach (var point in MaxPoint.First())
-                                {
-                                    BackupSize -= point._size;
-                                    _restorePoints.Remove(point);
-                                }
-                            }
-                            break;
-                        case 2:
-                            var MinPoint =
-                                (from x in listPoints
-                                    where x.Count != 0
-                                    orderby x.Count 
-                                    select x).Take(1);
-
-                            if (MinPoint.First().Count > 0)
-                            {
-                                foreach (var point in MinPoint.First())
-                                {
-                                    BackupSize -= point._size;
-                                    _restorePoints.Remove(point);
-                                }
-                            }
-                            break;
-                    }
-                    break;
-                case 2:
-                    switch (minMax)
-                    {
-                        case 1:
-                            var MaxFull =
-                                (from x in listPoints
-                                    orderby x.Count descending
-                                    select x).Take(1);
-
-
-                            if (MaxFull.First().Count > 0)
-                            {
-
-                                if (flagsForCleaningHybrid.Contains(1) && flagsForCleaningHybrid.Contains(2)) // Len & Date
-                                {
-                                    var PointToDel =
-                                        from x in MaxFull.First()
-                                        where SaveToDelbyLen.Contains(x) && SaveToDelbyDate.Contains(x)
-                                        select x; 
-                                
-                                    foreach (var point in PointToDel)
-                                    {
-                                        BackupSize -= point._size;
-                                        _restorePoints.Remove(point);
-                                    }
-                                }
-                                else if (flagsForCleaningHybrid.Contains(1) && flagsForCleaningHybrid.Contains(3)) // Len & Size
-                                {
-                                    var PointToDel =
-                                        from x in MaxFull.First()
-                                        where SaveToDelbyLen.Contains(x) && SaveToDelbySize.Contains(x)
-                                        select x; 
-                                
-                                    foreach (var point in PointToDel)
-                                    {
-                                        BackupSize -= point._size;
-                                        _restorePoints.Remove(point);
-                                    }
-                                }
-                                else if (flagsForCleaningHybrid.Contains(2) && flagsForCleaningHybrid.Contains(2)) // Date & Size
-                                {
-                                    var PointToDel =
-                                        from x in MaxFull.First()
-                                        where SaveToDelbyDate.Contains(x) && SaveToDelbySize.Contains(x)
-                                        select x; 
-                                
-                                    foreach (var point in PointToDel)
-                                    {
-                                        BackupSize -= point._size;
-                                        _restorePoints.Remove(point);
-                                    }
-                                }
-                                else // Len & Date & Size
-                                {
-                                    var PointToDel =
-                                        from x in MaxFull.First()
-                                        where SaveToDelbyLen.Contains(x) && SaveToDelbyDate.Contains(x) && SaveToDelbySize.Contains(x)
-                                        select x; 
-                                
-                                    foreach (var point in PointToDel)
-                                    {
-                                        BackupSize -= point._size;
-                                        _restorePoints.Remove(point);
-                                    }
-                                }
-                            }
-                            break;
-                        case 2:
-                            var MinFull =
-                                (from x in listPoints
-                                    where x.Count != 0
-                                    orderby x.Count 
-                                    select x).Take(1);
-
-                            if (MinFull.First().Count > 0)
-                            {
-                                if (flagsForCleaningHybrid.Contains(1) && flagsForCleaningHybrid.Contains(2)) // Len & Date
-                                {
-                                    var PointToDel =
-                                        from x in MinFull.First()
-                                        where SaveToDelbyLen.Contains(x) && SaveToDelbyDate.Contains(x)
-                                        select x;
-
-                                    foreach (var point in PointToDel)
-                                    {
-                                        BackupSize -= point._size;
-                                        _restorePoints.Remove(point);
-                                    }
-                                }
-                                else if (flagsForCleaningHybrid.Contains(1) && flagsForCleaningHybrid.Contains(3)) // Len & Size
-                                {
-                                    var PointToDel =
-                                        from x in MinFull.First()
-                                        where SaveToDelbyLen.Contains(x) && SaveToDelbySize.Contains(x)
-                                        select x;
-
-                                    foreach (var point in PointToDel)
-                                    {
-                                        BackupSize -= point._size;
-                                        _restorePoints.Remove(point);
-                                    }
-                                }
-                                else if (flagsForCleaningHybrid.Contains(2) && flagsForCleaningHybrid.Contains(3)) // Date & Size
-                                {
-                                    var PointToDel =
-                                        from x in MinFull.First()
-                                        where SaveToDelbyDate.Contains(x) && SaveToDelbySize.Contains(x)
-                                        select x;
-
-                                    foreach (var point in PointToDel)
-                                    {
-                                        BackupSize -= point._size;
-                                        _restorePoints.Remove(point);
-                                    }
-                                }
-                                else // Len & Date & Size
-                                {
-                                    var PointToDel =
-                                        from x in MinFull.First()
-                                        where SaveToDelbyLen.Contains(x) && SaveToDelbyDate.Contains(x) && SaveToDelbySize.Contains(x)
-                                        select x;
-
-                                    foreach (var point in PointToDel)
-                                    {
-                                        BackupSize -= point._size;
-                                        _restorePoints.Remove(point);
-                                    }
-                                }
-                            }
-                            break;
-                    }
-                    break;
-            }
-            
-        }*/
-
-        
         public int combo { get; set; } = 1;  // 1 - нужно удалить точку, если вышла за хотя бы один установленный лимит
                                              // 2 - нужно удалить точку, если вышла за все установленные лимиты
         public int minMax { get; set; } = 1; // 1 - убирать по минимум точек
@@ -832,38 +311,18 @@ namespace Backup
         public int cleaningHybridMode = 2;  // Size & Date - 1 ; Size & Len - 2; Date & Len - 3; Size & Date & Len
         
         
-        public void Cleaning(string type)
+        public void Cleaning(string type, ICleaningAlgorithm cleaningAlgorithm)
         {
             List<IPoints> forRemove = new List<IPoints>();
+            forRemove = cleaningAlgorithm.Cleaning();
+            foreach (var point in forRemove)
+            {
+                backupSize -= point._size;
+                _restorePoints.Remove(point);
+            }
+            
             switch (type)
             {
-                case "len":
-                    forRemove = CleaningByLen();
-                    foreach (var point in forRemove)
-                    {
-                        BackupSize -= point._size;
-                        _restorePoints.Remove(point);
-                    }
-
-                    break;
-                case "date":
-                    forRemove = CleaningByDate();
-                    foreach (var point in forRemove)
-                    {
-                        BackupSize -= point._size;
-                        _restorePoints.Remove(point);
-                    }
-
-                    break;
-                case "size":
-                    forRemove = CleaningBySize();
-                    foreach (var point in forRemove)
-                    {
-                        BackupSize -= point._size;
-                        _restorePoints.Remove(point);
-                    }
-                    
-                    break;
                 case "hybrid":
                     List<IPoints> SaveToDelbyLen = new List<IPoints>();
                     List<IPoints> SaveToDelbyDate = new List<IPoints>();
@@ -873,8 +332,9 @@ namespace Backup
                     switch (cleaningHybridMode)
                     {
                         case 1: // Len & Date
-                            SaveToDelbyLen = CleaningByLen();
-                            SaveToDelbyDate = CleaningByDate();
+                            SaveToDelbyLen = Cle,3
+                            aningByLen();
+                            SaveToDelbyDate = C0leaningByDate();
                             flagsForCleaningHybrid = new List<int>() {1, 2};   // Size - 1 ; Date - 2 ; Len - 3
                             
                             break;
@@ -918,7 +378,7 @@ namespace Backup
                                     {
                                         foreach (var point in MaxPoint.First())
                                         {
-                                            BackupSize -= point._size;
+                                            backupSize -= point._size;
                                             _restorePoints.Remove(point);
                                         }
                                     }
@@ -934,7 +394,7 @@ namespace Backup
                                     {
                                         foreach (var point in MinPoint.First())
                                         {
-                                            BackupSize -= point._size;
+                                            backupSize -= point._size;
                                             _restorePoints.Remove(point);
                                         }
                                     }
@@ -962,7 +422,7 @@ namespace Backup
                                 
                                             foreach (var point in PointToDel)
                                             {
-                                                BackupSize -= point._size;
+                                                backupSize -= point._size;
                                                 _restorePoints.Remove(point);
                                             }
                                         }
@@ -975,7 +435,7 @@ namespace Backup
                                 
                                         foreach (var point in PointToDel)
                                         {
-                                            BackupSize -= point._size;
+                                            backupSize -= point._size;
                                             _restorePoints.Remove(point);
                                         }
                                     }
@@ -988,7 +448,7 @@ namespace Backup
                                 
                                         foreach (var point in PointToDel)
                                         {
-                                            BackupSize -= point._size;
+                                            backupSize -= point._size;
                                             _restorePoints.Remove(point);
                                         }
                                     }
@@ -1001,7 +461,7 @@ namespace Backup
                                 
                                         foreach (var point in PointToDel)
                                         {
-                                            BackupSize -= point._size;
+                                            backupSize -= point._size;
                                             _restorePoints.Remove(point);
                                         }
                                     }
@@ -1024,7 +484,7 @@ namespace Backup
 
                                             foreach (var point in PointToDel)
                                             {
-                                                BackupSize -= point._size;
+                                                backupSize -= point._size;
                                                 _restorePoints.Remove(point);
                                             }
                                         }
@@ -1037,7 +497,7 @@ namespace Backup
 
                                             foreach (var point in PointToDel)
                                             {
-                                                BackupSize -= point._size;
+                                                backupSize -= point._size;
                                                 _restorePoints.Remove(point);
                                             }
                                         }
@@ -1050,7 +510,7 @@ namespace Backup
 
                                             foreach (var point in PointToDel)
                                             {
-                                                BackupSize -= point._size;
+                                                backupSize -= point._size;
                                                 _restorePoints.Remove(point);
                                             }
                                         }
@@ -1063,7 +523,7 @@ namespace Backup
 
                                             foreach (var point in PointToDel)
                                             {
-                                                BackupSize -= point._size;
+                                                backupSize -= point._size;
                                                 _restorePoints.Remove(point);
                                             }
                                         }
@@ -1075,165 +535,6 @@ namespace Backup
                     break;
             }
         }
-        
-        public List<IPoints> CleaningByLen()
-        {
-            List<IPoints> SaveToDelbyLen = new List<IPoints>();
-            if (_restorePoints.Count > len)
-            {
-                var FirstStepPointsToDeletebyLen =
-                    from x in _restorePoints
-                    where _restorePoints.IndexOf(x) < _restorePoints.Count - len
-                    select x;
-
-                {
-                    var SecondStepPointsToDeletebyLen =
-                        from x in FirstStepPointsToDeletebyLen
-                        where x is FullPoint && x.IndexOfDeltas == 0
-                        select x;
-
-                    foreach (var point in SecondStepPointsToDeletebyLen)
-                    {
-                        SaveToDelbyLen.Add(point);
-                    }
-                }
-
-                var ThirdStepPointsToDeletebyLen =
-                    from x in FirstStepPointsToDeletebyLen
-                    where x is FullPoint && x.IndexOfDeltas > 0
-                    select x;
-
-
-                int count = 0;
-                foreach (var point in ThirdStepPointsToDeletebyLen)
-                {
-                    for (int i = 1; i <= point.IndexOfDeltas; ++i)
-                        if (_restorePoints.IndexOf(point) + i < _restorePoints.Count - len)
-                        {
-                            SaveToDelbyLen.Add(_restorePoints[_restorePoints.IndexOf(point) + i]);
-                            count++;
-                        }
-
-                    point.IndexOfDeltas -= count;
-
-                    if (point.IndexOfDeltas == 0)
-                    {
-                        SaveToDelbyLen.Add(point);
-                    }
-                }
-            }
-            return SaveToDelbyLen;
-        }
-        public List<IPoints> CleaningByDate()
-        {
-            List<IPoints> SaveToDelbyDate = new List<IPoints>();
-            var dateNow = DateTime.Now;
-
-            var FirstStepPointsToDeletebyDate =
-                from x in _restorePoints
-                where (dateNow - x._date).Days > dateTimeSpan
-                select x;
-
-            {
-                var SecondStepPointsToDeletebyDate =
-                    from x in FirstStepPointsToDeletebyDate
-                    where x is FullPoint && x.IndexOfDeltas < 1
-                    select x;
-
-                foreach (var point in SecondStepPointsToDeletebyDate)
-                {
-                    SaveToDelbyDate.Add(point);
-                }
-            }
-
-            var ThirdStepPointsToDeletebyDate =
-                from x in FirstStepPointsToDeletebyDate
-                where x is FullPoint && x.IndexOfDeltas > 0
-                select x;
-
-            int count = 0;
-            foreach (var point in ThirdStepPointsToDeletebyDate)
-            {
-                int indexOfFullPoint = _restorePoints.IndexOf(point);
-                for (int i = 1; i <= point.IndexOfDeltas; ++i)
-                {
-                    if ((dateNow - _restorePoints[indexOfFullPoint + i]._date).Days > dateTimeSpan)
-                    {
-                        SaveToDelbyDate.Add(_restorePoints[indexOfFullPoint + i]);
-                        count++;
-                    }
-                }
-
-                point.IndexOfDeltas -= count;
-
-                if (point.IndexOfDeltas == 0)
-                {
-                    SaveToDelbyDate.Add(point);
-                }
-            }
-
-            return SaveToDelbyDate;
-        }
-        public List<IPoints> CleaningBySize()
-        {
-            List<IPoints> SaveToDelbySize = new List<IPoints>();
-            if (BackupSize < maxSize)
-                return SaveToDelbySize;
-            var currentSize = BackupSize;
-
-            int countPoints = 0;
-            foreach (var point in _restorePoints)
-            {
-                currentSize -= point._size;
-                ++countPoints;
-
-                if (currentSize < maxSize)
-                    break;
-            }
-
-            var FirstStepPointsToDeletebySize =
-                from x in _restorePoints
-                where x is FullPoint && _restorePoints.IndexOf(x) < countPoints
-                select x;
-
-            {
-                var SecondStepPointsToDeletebySize =
-                    from x in FirstStepPointsToDeletebySize
-                    where x.IndexOfDeltas == 0
-                    select x;
-
-                foreach (var point in SecondStepPointsToDeletebySize)
-                {
-                    SaveToDelbySize.Add(point);
-                }
-            }
-
-            var ThirdStepPointsToDeletebySize =
-                from x in FirstStepPointsToDeletebySize
-                where x.IndexOfDeltas > 0
-                select x;
-
-            int count = 0;
-            currentSize = BackupSize;
-            foreach (var point in ThirdStepPointsToDeletebySize)
-            {
-                int indexOfFullPoint = _restorePoints.IndexOf(point);
-                for (int i = 1; i <= point.IndexOfDeltas; ++i)
-                {
-                    if (currentSize - _restorePoints[indexOfFullPoint + i]._size > BackupSize)
-                    {
-                        SaveToDelbySize.Add(_restorePoints[indexOfFullPoint + i]);
-                        count++;
-                    }
-                }
-
-                point.IndexOfDeltas -= count;
-                
-            }
-
-            return SaveToDelbySize;
-        }
-
 
         public void ChangeTime()
         {

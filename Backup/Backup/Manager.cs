@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net.Sockets;
 
 namespace Backup
 {
@@ -8,17 +7,25 @@ namespace Backup
     {
         static List<FileBackup> _backups = new List<FileBackup>();
 
-        public static void CreateBackup()
+        public static void CreateBackup(int creationMode)
         {
             int id = _backups.Count;
-            _backups.Add(new FileBackup(id));
+            _backups.Add(new FileBackup(id, creationMode));
             Console.WriteLine("Вы создали бэкап с идом {0}", id);
         }
+
+        public static (DateTime date, string path, long size, List<string> files) GetRestorePointInfo(int idBackUp, int idRestorePoint)
+        {
+            var backup = _backups[idBackUp];
+            var restorePoint = backup.restorePoints[idRestorePoint];
+
+            return (restorePoint._date, restorePoint._path, restorePoint._size, restorePoint.files);
+        }
         
-        public static void CreateBackup(List<string> files)
+        public static void CreateBackup(List<string> files, int creationMode)
         {
             int id = _backups.Count;
-            _backups.Add(new FileBackup(id, files));
+            _backups.Add(new FileBackup(id, files, creationMode));
             Console.WriteLine("Вы создали бэкап с идом {0}", id);
         }
 
@@ -33,16 +40,7 @@ namespace Backup
             CheckIdBackup(idBackup);
             _backups[idBackup].CreateDeltaRestorePoint(path);
         }
-        public static void ShowSizeOfBackup(int idBackup)
-        {
-            CheckIdBackup(idBackup);
-            Console.WriteLine(_backups[idBackup].BackupSize);
-        }
-        public static void ShowCreationTime(int idBackup)
-        {
-            CheckIdBackup(idBackup);
-            Console.WriteLine(_backups[idBackup].CreationTime);
-        }
+        
         public static void AddFileToBackup(int idBackup, string path )
         {
             CheckIdBackup(idBackup);
@@ -54,22 +52,12 @@ namespace Backup
             CheckIdBackup(idBackup);
             _backups[idBackup].DeleteFilesForBackup();
         }
-        public static void ShowBackupFiles(int idBackup)
+        public static List<string> GetBackupFiles(int idBackup)
         {
             CheckIdBackup(idBackup);
             _backups[idBackup].ShowAllFilesForBackup();
-        }
 
-        public static void ShowBackupRestorePoints(int idBackup)
-        {
-            CheckIdBackup(idBackup);
-            foreach (var point in _backups[idBackup].restorePoints)
-            {
-                Console.WriteLine("---------------------------------------------------");
-                for(int i = 0; i < point.files.Count; ++i)
-                    Console.WriteLine("{0}) {1}", i+1, point.files[i]);
-                Console.WriteLine("---------------------------------------------------");
-            }
+            return _backups[idBackup].listOfFiles;
         }
         public static void CleanRestorePoints(int idBackup, string type)
         {
@@ -100,7 +88,7 @@ namespace Backup
                         case 1:
                             Console.WriteLine("Напишите максимум точек, которые могут храниться");
                             answer = int.Parse(Console.ReadLine());
-                            _backups[idBackup].len = answer;
+                            _backups[idBackup].length = answer;
                             break;
                         case 2:
                             Console.WriteLine("Напишите самую позднюю дату(YY:MM:DD)");
@@ -140,7 +128,7 @@ namespace Backup
                             case 1:
                                 Console.WriteLine("Напишите максимум точек, которые могут храниться");
                                 answer = int.Parse(Console.ReadLine());
-                                _backups[idBackup].len = answer;
+                                _backups[idBackup].length = answer;
                                 break;
                             case 2:
                                 Console.WriteLine("Напишите самую позднюю дату(YY:MM:DD)");
