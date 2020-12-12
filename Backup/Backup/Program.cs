@@ -28,7 +28,7 @@ namespace Backup
                 Manager.CreateRestorePoint(0, backupPath);
                 
                 Manager.CreateRestorePoint(0, backupPath);
-                Manager.CleanRestorePoints(0, "len");
+                Manager.CleanRestorePoints(0, CleaningAlg.length);
             }
             
             // Case №2
