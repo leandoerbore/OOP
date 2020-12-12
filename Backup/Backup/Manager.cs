@@ -59,12 +59,11 @@ namespace Backup
 
             return _backups[idBackup].listOfFiles;
         }
-        public static void CleanRestorePoints(int idBackup, string type)
+        public static void CleanRestorePoints(int idBackup, ICleaningAlgorithm algorithm)
         {
             CheckIdBackup(idBackup);
             
-            _backups[idBackup].Cleaning(type);
-                    
+            _backups[idBackup].Cleaning(algorithm);
         }
 
         public static void ChangeModeForCleaning(int idBackup)

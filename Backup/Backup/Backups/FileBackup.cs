@@ -311,10 +311,10 @@ namespace Backup
         public int cleaningHybridMode = 2;  // Size & Date - 1 ; Size & Len - 2; Date & Len - 3; Size & Date & Len
         
         
-        public void Cleaning(string type, ICleaningAlgorithm cleaningAlgorithm)
+        public void Cleaning(ICleaningAlgorithm cleaningAlgorithm)
         {
             List<IPoints> forRemove = new List<IPoints>();
-            forRemove = cleaningAlgorithm.Cleaning();
+            forRemove = cleaningAlgorithm.Cleaning(this);
             foreach (var point in forRemove)
             {
                 backupSize -= point._size;

@@ -4,6 +4,6 @@ namespace Backup
 {
     public interface ICleaningAlgorithm
     {
-        public List<IPoints> Cleaning();
+        public List<IPoints> Cleaning(FileBackup backup);
     }
 }

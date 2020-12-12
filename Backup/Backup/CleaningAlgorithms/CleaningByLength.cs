@@ -5,25 +5,18 @@ namespace Backup.CleaningAlgorithms
 {
     public class CleaningByLength : ICleaningAlgorithm
     {
-
-        private List<IPoints> _restorePoints;
-        private int _length;
-        
-        public CleaningByLength(List<IPoints> restorePoints, int length)
+        public List<IPoints> Cleaning(FileBackup backup)
         {
-            _restorePoints = restorePoints;
-            _length = length;
-        }
-        
-        
-        public List<IPoints> Cleaning()
-        {
+            List<IPoints> restorePoints = backup.restorePoints;
+            int length = backup.length;
+            
+            
             List<IPoints> SaveToDelbyLen = new List<IPoints>();
-            if (_restorePoints.Count > _length)
+            if (restorePoints.Count > length)
             {
                 var FirstStepPointsToDeletebyLen =
-                    from x in _restorePoints
-                    where _restorePoints.IndexOf(x) < _restorePoints.Count - _length
+                    from x in restorePoints
+                    where restorePoints.IndexOf(x) < restorePoints.Count - length
                     select x;
 
                 {
@@ -48,9 +41,9 @@ namespace Backup.CleaningAlgorithms
                 foreach (var point in ThirdStepPointsToDeletebyLen)
                 {
                     for (int i = 1; i <= point.IndexOfDeltas; ++i)
-                        if (_restorePoints.IndexOf(point) + i < _restorePoints.Count - _length)
+                        if (restorePoints.IndexOf(point) + i < restorePoints.Count - length)
                         {
-                            SaveToDelbyLen.Add(_restorePoints[_restorePoints.IndexOf(point) + i]);
+                            SaveToDelbyLen.Add(restorePoints[restorePoints.IndexOf(point) + i]);
                             count++;
                         }
 

@@ -6,51 +6,47 @@ namespace Backup.CleaningAlgorithms
 {
     public class CleaningByDate : ICleaningAlgorithm
     {
-        private List<IPoints> _restorePoints;
-        private int _dateTimeSpan;
-
-        public CleaningByDate(List<IPoints> restorePoints, int dateTimeSpan)
+        
+        
+        public List<IPoints> Cleaning(FileBackup backup)
         {
-            _restorePoints = restorePoints;
-            _dateTimeSpan = dateTimeSpan;
-
-        }
-        public List<IPoints> Cleaning()
-        {
-            List<IPoints> SaveToDelbyDate = new List<IPoints>();
+            List<IPoints> restorePoints = backup.restorePoints;
+            int dateTimeSpan = backup.dateTimeSpan;
+            
+            List<IPoints> saveToDelbyDate = new List<IPoints>();
             var dateNow = DateTime.Now;
 
-            var FirstStepPointsToDeletebyDate =
-                from x in _restorePoints
-                where (dateNow - x._date).Days > _dateTimeSpan
+            var firstStepPointsToDeletebyDate =
+                from x in restorePoints
+                where (dateNow - x._date).Days > dateTimeSpan
                 select x;
 
             {
-                var SecondStepPointsToDeletebyDate =
-                    from x in FirstStepPointsToDeletebyDate
+                var secondStepPointsToDeletebyDate =
+                    from x in firstStepPointsToDeletebyDate
                     where x is FullPoint && x.IndexOfDeltas < 1
                     select x;
 
-                foreach (var point in SecondStepPointsToDeletebyDate)
+                foreach (var point in secondStepPointsToDeletebyDate)
                 {
-                    SaveToDelbyDate.Add(point);
+                    saveToDelbyDate.Add(point);
                 }
             }
 
-            var ThirdStepPointsToDeletebyDate =
-                from x in FirstStepPointsToDeletebyDate
+            var thirdStepPointsToDeletebyDate =
+                from x in firstStepPointsToDeletebyDate
                 where x is FullPoint && x.IndexOfDeltas > 0
                 select x;
 
             int count = 0;
-            foreach (var point in ThirdStepPointsToDeletebyDate)
+            foreach (var point in thirdStepPointsToDeletebyDate)
             {
-                int indexOfFullPoint = _restorePoints.IndexOf(point);
+                int indexOfFullPoint = restorePoints.IndexOf(point);
                 for (int i = 1; i <= point.IndexOfDeltas; ++i)
                 {
-                    if ((dateNow - _restorePoints[indexOfFullPoint + i]._date).Days > _dateTimeSpan)
+                    if ((dateNow - restorePoints[indexOfFullPoint + i]._date).Days > dateTimeSpan)
                     {
-                        SaveToDelbyDate.Add(_restorePoints[indexOfFullPoint + i]);
+                        saveToDelbyDate.Add(restorePoints[indexOfFullPoint + i]);
                         count++;
                     }
                 }
@@ -59,11 +55,11 @@ namespace Backup.CleaningAlgorithms
 
                 if (point.IndexOfDeltas == 0)
                 {
-                    SaveToDelbyDate.Add(point);
+                    saveToDelbyDate.Add(point);
                 }
             }
 
-            return SaveToDelbyDate;
+            return saveToDelbyDate;
         }
     }
 }

@@ -4,14 +4,11 @@ namespace Backup.CleaningAlgorithms
 {
     public class CleaningHybrid : ICleaningAlgorithm
     {
-
-        public CleaningHybrid(List<ICleaningAlgorithm> listOfAlgorithms)
+        public List<IPoints> Cleaning(FileBackup backup)
         {
             
-        }
-        public List<IPoints> Cleaning()
-        {
-            throw new System.NotImplementedException();
+            
+            
         }
     }
 }

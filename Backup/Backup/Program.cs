@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Transactions;
+using Backup.CleaningAlgorithms;
 
 namespace Backup
 {
@@ -17,12 +18,10 @@ namespace Backup
                 Manager.CreateRestorePoint(0, backupPath);
                 
                 Manager.CreateRestorePoint(0, backupPath);
-                Manager.CleanRestorePoints(0, "len");
+                Manager.CleanRestorePoints(0, new CleaningBySize());
                 
             }
-            
-            
-            
+
             /*// Case №1
             {
                 Manager.CreateBackup(new List<string>() {@"D:\Test\file1.txt", @"D:\Test\file2.txt"}, 1);

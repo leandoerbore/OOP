@@ -5,37 +5,31 @@ namespace Backup.CleaningAlgorithms
 {
     public class CleaningBySize : ICleaningAlgorithm
     {
-        private long _backupSize;
-        private long _maxSize;
-        private List<IPoints> _restorePoints;
         
-        public CleaningBySize(long backupSize, long maxSize, List<IPoints> restorePoints )
+        public List<IPoints> Cleaning(FileBackup backup)
         {
-            _backupSize = backupSize;
-            _maxSize = maxSize;
-            _restorePoints = restorePoints;
-        }
+            long backupSize = backup.backupSize;
+            long maxSize = backup.backupSize;
+            List<IPoints> restorePoints = backup.restorePoints;
 
-        public List<IPoints> Cleaning()
-        {
             List<IPoints> SaveToDelbySize = new List<IPoints>();
-            if (_backupSize < _maxSize)
+            if (backupSize < maxSize)
                 return SaveToDelbySize;
-            var currentSize = _backupSize;
+            var currentSize = backupSize;
 
             int countPoints = 0;
-            foreach (var point in _restorePoints)
+            foreach (var point in restorePoints)
             {
                 currentSize -= point._size;
                 ++countPoints;
 
-                if (currentSize < _maxSize)
+                if (currentSize < maxSize)
                     break;
             }
 
             var FirstStepPointsToDeletebySize =
-                from x in _restorePoints
-                where x is FullPoint && _restorePoints.IndexOf(x) < countPoints
+                from x in restorePoints
+                where x is FullPoint && restorePoints.IndexOf(x) < countPoints
                 select x;
 
             {
@@ -56,15 +50,15 @@ namespace Backup.CleaningAlgorithms
                 select x;
 
             int count = 0;
-            currentSize = _backupSize;
+            currentSize = backupSize;
             foreach (var point in ThirdStepPointsToDeletebySize)
             {
-                int indexOfFullPoint = _restorePoints.IndexOf(point);
+                int indexOfFullPoint = restorePoints.IndexOf(point);
                 for (int i = 1; i <= point.IndexOfDeltas; ++i)
                 {
-                    if (currentSize - _restorePoints[indexOfFullPoint + i]._size > _backupSize)
+                    if (currentSize - restorePoints[indexOfFullPoint + i]._size > backupSize)
                     {
-                        SaveToDelbySize.Add(_restorePoints[indexOfFullPoint + i]);
+                        SaveToDelbySize.Add(restorePoints[indexOfFullPoint + i]);
                         count++;
                     }
                 }
