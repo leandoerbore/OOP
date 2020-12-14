@@ -36,5 +36,10 @@ namespace Backup
     {
         public ExceptionBadMode(string message) : base(message) {}
     }
+
+    public class ExceptionNullList : Exception
+    {
+        public ExceptionNullList(string message) : base(message) {}
+    }
     
 }

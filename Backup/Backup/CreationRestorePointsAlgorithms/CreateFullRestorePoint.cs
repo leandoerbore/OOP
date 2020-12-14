@@ -47,7 +47,15 @@ namespace Backup.CreationRestorePointsAlgorithms
 
         public long Sizing(List<string> files)
         {
-            throw new System.NotImplementedException();
+            long size = 0;
+
+            foreach (var file in files)
+            {
+                FileInfo fileInfo = new FileInfo(file);
+                size += fileInfo.Length;
+            }
+
+            return size;
         }
     }
 }

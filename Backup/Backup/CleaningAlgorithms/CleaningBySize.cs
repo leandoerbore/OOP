@@ -9,7 +9,7 @@ namespace Backup.CleaningAlgorithms
         public List<IPoints> Cleaning(FileBackup backup)
         {
             long backupSize = backup.backupSize;
-            long maxSize = backup.backupSize;
+            long maxSize = backup.maxSize;
             List<IPoints> restorePoints = backup.restorePoints;
 
             List<IPoints> SaveToDelbySize = new List<IPoints>();

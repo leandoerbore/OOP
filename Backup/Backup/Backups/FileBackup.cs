@@ -11,14 +11,14 @@ namespace Backup
     {
         public int _number { get; private set; } = 1;
         List<string> _listOfFiles = new List<string>();
-        private Combo _comboOption = Combo.OR;
+        public Combo comboOption = Combo.OR;
 
         public int length { get; set; } = 1;
-        public int dateTimeSpan = 2;
-        public long maxSize = 150;
+        public int dateTimeSpan { get; set; } = 2;
+        public long maxSize { get; set; } = 150;
         
 
-        private CreationMode _creationMode ; // Для выбора архивом или раздельно
+        public CreationMode creationMode ; 
         public int id { get; }
         public DateTime creationTime { get; }
         public long backupSize { get; private set; } = 0;
@@ -34,7 +34,7 @@ namespace Backup
         {
             id = id;
             creationTime = DateTime.Now;
-            _creationMode = creationModeOption;
+            creationMode = creationModeOption;
         }
         
         public FileBackup(int id, List<string> files, CreationMode creationModeOption)
@@ -47,7 +47,7 @@ namespace Backup
                 CheckFile(file);   
                 AddFilesToBackup(file);
             }
-            _creationMode = creationModeOption;
+            creationMode = creationModeOption;
         }
 
         
@@ -56,7 +56,7 @@ namespace Backup
         {
             CheckDirectory(path);
 
-            switch (_creationMode)
+            switch (creationMode)
             {
                 case CreationMode.SEPARATELY:
                     
@@ -79,7 +79,7 @@ namespace Backup
         {
             CheckDirectory(path);
 
-            switch (_creationMode)
+            switch (creationMode)
             {
                 case CreationMode.SEPARATELY:
                     creationAlgorithm.CreateRestorePointSeparately(path, this);
@@ -94,7 +94,6 @@ namespace Backup
                     ++_number;
                     
                     break;
-                
             }
         }
 
@@ -161,7 +160,7 @@ namespace Backup
         public void Cleaning(List<ICleaningAlgorithm> hybrid)
         {
             List<IPoints> forRemove = new List<IPoints>();
-            forRemove = new CleaningHybrid(this, _comboOption).Cleaning(hybrid);
+            forRemove = new CleaningHybrid(this, comboOption).Cleaning(hybrid);
             foreach (var point in forRemove)
             {
                 backupSize -= point._size;
@@ -169,9 +168,9 @@ namespace Backup
             }
         }
 
-        public void ChangeTime()
+        public void ChangeTime(DateTime date)
         {
-            _restorePoints.First()._date = new DateTime(2020, 11, 20);
+            _restorePoints.First()._date = date;
         }
         private void CheckDirectory(string path)
         {

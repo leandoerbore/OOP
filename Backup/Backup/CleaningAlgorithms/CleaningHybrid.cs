@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -22,18 +23,24 @@ namespace Backup.CleaningAlgorithms
                 listOfPoints.Add(algorithm.Cleaning(backup));
             }
 
-            
             switch (combo)
             {
                 case Combo.AND:
-                    IEnumerable<IPoints> maxPointsToRemove = listOfPoints.First();
+                    var maxPointsToRemove = listOfPoints.First();
+                    IEnumerable<IPoints> result = new List<IPoints>();
+
+                    /*foreach (var listPoints in listOfPoints)
+                    {
+                        var result = listPoints.Ex
+                    }*/
                     for (int i = 1; i < listOfPoints.Count; ++i)
                     {
-                        maxPointsToRemove = listOfPoints[i]
-                            .Where(point => maxPointsToRemove.Contains(point));
+                        result = maxPointsToRemove.Intersect(listOfPoints[i]);
                     }
-
-                    saveToDelbyDate = (List<IPoints>) maxPointsToRemove;
+                    foreach (var point in result)
+                    {
+                        saveToDelbyDate.Add(point);
+                    }
 
                     break;
                 case Combo.OR:
@@ -43,9 +50,15 @@ namespace Backup.CleaningAlgorithms
                             Count = list.Count,
                             list
                         })
-                        .OrderBy(list=> list.Count)
+                        .OrderByDescending(list=> list.Count)
                         .Take(1);
-                    saveToDelbyDate = (List<IPoints>) minPointsToRemove;
+                    if (minPointsToRemove.First() is null)
+                        break;
+                    
+                    foreach (var point in minPointsToRemove.First().list)
+                    {
+                        saveToDelbyDate.Add(point);
+                    }
 
                     break;
             }
