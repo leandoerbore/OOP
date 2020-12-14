@@ -6,6 +6,7 @@ namespace Backup
 {
     public abstract class RestorePoint : IPoints
     {
+        public string RestorePointName { get; set; }
         public abstract int IndexOfDeltas { get; set; }
         public DateTime _date { get; set; }
         public long _size { get; set; }
@@ -20,6 +21,7 @@ namespace Backup
         }
         public RestorePoint(string path, long size, DateTime date, List<string> files, int number)
         {
+            RestorePointName = ("restore-point-" + number);
             _date = date;
             _size = size;
             _path = path;
@@ -28,6 +30,7 @@ namespace Backup
         
         public RestorePoint(string path, long size, DateTime date, List<string> files, int number, string zipName)
         {
+            RestorePointName = ("restore-point-" + number);
             _date = date;
             _size = size;
             _path = path;

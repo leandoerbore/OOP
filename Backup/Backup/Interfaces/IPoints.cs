@@ -5,6 +5,7 @@ namespace Backup
 {
     public interface IPoints
     {
+        public string RestorePointName { get; set; }
         public int IndexOfDeltas { get; set; } 
         public DateTime _date { get; set; }
         public long _size { get; set; }
