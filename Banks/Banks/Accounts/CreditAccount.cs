@@ -5,7 +5,6 @@ namespace Banks
 {
     public class CreditAccount : Account
     {
-        private Thread _threadLimit;
         private int leftDays = 30;
         private DateTime creationTimeLimit;
         private double BankCreditLimit;
@@ -14,18 +13,17 @@ namespace Banks
         public CreditAccount(int BIC, bool isDoubtful, double Fee, long numbersAccount, double bankLimitForTransactions, double creditLimit, double creditFee) 
             : base(BIC, isDoubtful, Fee, numbersAccount, bankLimitForTransactions)
         {
-            _threadLimit = new Thread(TimeLimit);
-            _threadLimit.Start();
             BankCreditLimit = creditLimit;
             BankCreditFee = creditFee;
             creationTimeLimit = DateTime.Now.Date;
+            TimeLimit();
         }
 
         private void TimeLimit()
         {
             while (true)
             {
-                if (Date.globalDate - creationTimeLimit == TimeSpan.FromDays(30))
+                if (Date.date().globalDate - creationTimeLimit == TimeSpan.FromDays(30))
                 {
                     if (IsDoubtful)
                     {

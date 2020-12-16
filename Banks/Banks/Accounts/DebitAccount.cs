@@ -9,8 +9,9 @@ namespace Banks
             : base(BIC, isDoubtful, Fee, numbersAccount, bankLimitForTransactions)
         {
             InterestProcent = interest;
-            DateForInterest = Date.globalDate;
-            lastDateCalcInterest = Date.globalDate;
+            DateForInterest = Date.date().globalDate;
+            lastDateCalcInterest = Date.date().globalDate;
+            InterestCalc();
         }
 
         protected override void InterestCalc()
@@ -30,23 +31,21 @@ namespace Banks
                     }
                 }
                 
-                Thread.Sleep(10);
+                Thread.Sleep(100);
             }
         }
 
         protected override void CalcForDay()
         {
-            var dif = Date.globalDate - lastDateCalcInterest;
+            var dif = Date.date().globalDate - lastDateCalcInterest;
             if (dif.Days >= 1)
             {
                 _interestBalance += (InterestProcent / 365) * Balance / 100;
                 ++itterationForInterest;
-                lastDateCalcInterest = Date.globalDate;
+                lastDateCalcInterest = Date.date().globalDate;
                 Console.WriteLine("На дебетовом счёте {0} InterestBalance: {1:f2}", NumbersAccount, _interestBalance);
             }
         }
-        
-        
 
         public override void WithDraw(double money)
         {

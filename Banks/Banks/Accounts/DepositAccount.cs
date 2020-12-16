@@ -46,7 +46,7 @@ namespace Banks
 
         protected override void CalcForDay()
         {
-            var dif = Date.globalDate - lastDateCalcInterest;
+            var dif = Date.date().globalDate - lastDateCalcInterest;
             if (dif.Days >= 1)
             {
                 var condition = _conditions
@@ -56,7 +56,7 @@ namespace Banks
                 {
                     _interestBalance += (InterestProcent / 365) * Balance / 100;
                     ++itterationForInterest;
-                    lastDateCalcInterest = Date.globalDate;
+                    lastDateCalcInterest = Date.date().globalDate;
 
                     if (!AccessToWithDraw && DaysForAccess <= 0)
                     {

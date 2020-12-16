@@ -4,12 +4,12 @@ namespace Banks
 {
     public class GazpromBank : Bank
     {
-        public override string Name { get; } = "GazpromBank";
-        public override double LimitForTransactions { get; } = 50000;
+        public override string Name { get; protected set; } = "GazpromBank";
+        public override double LimitForTransactions { get; protected set; } = 50000;
         public override double Fee { get; protected set; } = 3;
         public override double CreditFee { get; protected set; } = 15;
         public override double CreditLimit { get; protected set; } = -100000;
-        public override int BIC { get; } = 403;
+        public override int BIC { get; protected set;} = 403;
 
         public GazpromBank()
         {

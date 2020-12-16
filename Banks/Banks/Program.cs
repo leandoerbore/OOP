@@ -23,7 +23,7 @@ namespace Banks
                 
                 
                 Manager.CheckBalance(Tinkoff);
-                ChangeTime(31);
+                Manager.ChangeTime(31);
                 
                 Thread.Sleep(100);
             }
@@ -58,16 +58,5 @@ namespace Banks
                 Manager.CheckBalance(Sberbank);
             }*/
         }
-
-        public static void ChangeTime(int days)
-        {
-            for (int i = 0; i < days; ++i)
-            {
-                var dateTest = Date.globalDate + TimeSpan.FromDays(1);
-                Date.changeTime(dateTest);
-                Thread.Sleep(1000);
-            }
-        }
-
     }
 }

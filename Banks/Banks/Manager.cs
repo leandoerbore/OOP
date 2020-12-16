@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace Banks
 {
@@ -239,15 +240,26 @@ namespace Banks
             }
         }
 
-        public static void CanceTransaction(string NameBank)
+        public static void CanceTransaction(string NameBank, long numbers, int transactionNumber)
         {
             var bank = FindBank(NameBank);
             
-            Console.WriteLine("Введите номер счета с которого была произведена транзакция на другой счёт");
-            var numbers = long.Parse(Console.ReadLine());
-            
-            bank.CancleTransaction(numbers);
-            
+            bank.CancleTransaction(numbers, transactionNumber);
+        }
+
+        public static Date date()
+        {
+            return Date.date();
+        }
+
+        public static void ChangeTime(int days)
+        {
+            for (int i = 0; i < days; ++i)
+            {
+                var dateTest = Date.date().globalDate + TimeSpan.FromDays(1);
+                Date.date().changeTime(dateTest);
+                Thread.Sleep(1000);
+            }
         }
     }
 }

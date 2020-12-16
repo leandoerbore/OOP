@@ -31,6 +31,11 @@ namespace Banks
     {
         public ExceptionAccountDoesNotExist(string message) : base(message) {}
     }
+
+    public class ExceptionWrongTransactionNumber : Exception
+    {
+        public ExceptionWrongTransactionNumber(string message) : base(message) {}
+    }
     
     
 }
