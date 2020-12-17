@@ -5,27 +5,27 @@ namespace Banks
 {
     public class Client
     {
-        public string Name { get; private set; }
-        public string Surname { get; private set; }
-        public string Adress { get; private set; }
-        public long Passport { get; private set; }
+        public string name { get; private set; }
+        public string surname { get; private set; }
+        public string adress { get; private set; }
+        public long passport { get; private set; }
 
         public Client(string name, string surname, string adress=null, long passport=default)
         {
-            Name = name;
-            Surname = surname;
-            Adress = adress;
-            Passport = passport;
+            this.name = name;
+            this.surname = surname;
+            this.adress = adress;
+            this.passport = passport;
         }
 
         public void AddAdress(string adress)
         {
-            Adress = adress;
+            adress = adress;
         }
 
         public void AddPassport(long passport)
         {
-            Passport = passport;
+            passport = passport;
         }
     }
 }

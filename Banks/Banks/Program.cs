@@ -14,18 +14,18 @@ namespace Banks
             
             // Case №1 Тест на подсчёт процента на остаток счёта
             {
-                Manager.CreateClientInBank(Tinkoff);
-                
-                Manager.CreateDepositAccount(Tinkoff, 0);
-                Manager.TopUpBalance(Tinkoff);
-                Manager.CreateDebitAccount(Tinkoff, 0);
-                Manager.TopUpBalance(Tinkoff);
-                
+                var idClient1 = Manager.CreateClientInBank(Tinkoff, "Женя", "Жиборкин", "Сенная");
+
+                var numbers1 = Manager.CreateDepositAccount(Tinkoff, 0);
+                Manager.TopUpBalance(numbers1, 2000);
+                var numbers2 = Manager.CreateDebitAccount(Tinkoff, 0);
+                Manager.TopUpBalance(numbers2, 3000);
                 
                 Manager.CheckBalance(Tinkoff);
                 Manager.ChangeTime(31);
                 
-                Thread.Sleep(100);
+                Manager.CheckBalance(Tinkoff);
+                
             }
             
             
