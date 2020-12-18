@@ -5,7 +5,6 @@ namespace Banks
 {
     public class CreditAccount : Account
     {
-        private Thread _threadLimit;
         private int leftDays = 30;
         private DateTime creationTimeLimit;
         private double BankCreditLimit;
@@ -14,8 +13,6 @@ namespace Banks
         public CreditAccount(int BIC, bool isDoubtful, double Fee, long numbersAccount, double bankLimitForTransactions, double creditLimit, double creditFee) 
             : base(BIC, isDoubtful, Fee, numbersAccount, bankLimitForTransactions)
         {
-            _threadLimit = new Thread(TimeLimit);
-            _threadLimit.Start();
             BankCreditLimit = creditLimit;
             BankCreditFee = creditFee;
             creationTimeLimit = DateTime.Now.Date;
@@ -23,24 +20,22 @@ namespace Banks
 
         private void TimeLimit()
         {
-            while (true)
+            if (Date.date().globalDate - creationTimeLimit == TimeSpan.FromDays(30))
             {
-                if (Date.globalDate - creationTimeLimit == TimeSpan.FromDays(30))
+                if (IsDoubtful)
                 {
-                    if (IsDoubtful)
-                    {
-                        LimitForTransactionsLeft = BankLimitForTransactions;
-                        Console.WriteLine("Ваш кредитный лимит обновился");
-                    }
-
-                    if (Balance < (BankCreditLimit / 2))
-                    {
-                        Balance = Balance + (Balance + BankCreditLimit) * BankCreditFee / 100;
-                    }
+                    LimitForTransactionsLeft = BankLimitForTransactions;
+                    Console.WriteLine("Ваш кредитный лимит обновился");
                 }
-                Thread.Sleep(1000);
+
+                if (Balance < (BankCreditLimit / 2))
+                {
+                    Balance = Balance + (Balance + BankCreditLimit) * BankCreditFee / 100;
+                }
             }
         }
+
+        public override void Calc() => TimeLimit();
 
         public override void WithDraw(double money)
         {
@@ -79,6 +74,7 @@ namespace Banks
                 }
             }
         }
+        
 
     }
 }

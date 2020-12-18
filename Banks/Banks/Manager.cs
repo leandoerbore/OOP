@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace Banks
 {
@@ -8,25 +9,25 @@ namespace Banks
     {
         private static List<Bank> banks = new List<Bank>(){new TinkoffBank(), new SberBank(), new GazpromBank()};
 
-        public static void CreateClientInBank(string NameBank)
+        public static int CreateClientInBank(string nameBank, string name, string surname, string adress = null, long passport = default)
         {
-            var bank = FindBank(NameBank);
+            var bank = FindBank(nameBank);
             
-            bank.clients.Add(new Client());
+            bank.clients.Add(new Client(name, surname, adress, passport));
             var client = bank.clients.Last();
             
-            Console.WriteLine("{0} {1} стал клиентом банка {2}", client.Name, client.Surname, bank.Name);
+            return bank.clients.Count - 1;
         }
 
-        public static void CreateDepositAccount(string NameBank, int idClient)
+        public static long CreateDepositAccount(string nameBank, int idClient)
         {
-            var bank = FindBank(NameBank);
+            var bank = FindBank(nameBank);
             Client client = FindClient(bank, idClient);
             var BIC = bank.BIC;
             var condition = bank.conditions;
             var fee = bank.Fee;
             var numbersAccount = bank.CreateRandomAccountNumbers();
-            var isDoubrful = (client.Passport is null || client.Adress is null) ? true : false;
+            var isDoubrful = (client.passport == default || client.adress == null) ? true : false;
             var bankLimitForTransactions = bank.LimitForTransactions;
             
             bank.accounts.Add(new DepositAccount(BIC, isDoubrful, condition, fee, numbersAccount, 30, bankLimitForTransactions));
@@ -34,18 +35,19 @@ namespace Banks
             var account = bank.accounts.Last();
                 
             bank.ConnectClientAndAccount(client,account);
-            Console.WriteLine("Для {0} {1} был создан депозитный счёт в банке {2} с номером : {3}", client.Name, client.Surname, bank.Name, account.NumbersAccount);
+
+            return account.NumbersAccount;
         }
         
-        public static void CreateDebitAccount(string NameBank, int idClient)
+        public static long CreateDebitAccount(string nameBank, int idClient)
         {
-            var bank = FindBank(NameBank);
+            var bank = FindBank(nameBank);
             Client client = FindClient(bank, idClient);
             int BIC = bank.BIC;
             var interest = bank.Interest;
             var fee = bank.Fee;
             var numbersAccount = bank.CreateRandomAccountNumbers();
-            var isDoubrful = (client.Passport is null || client.Adress is null) ? true : false;
+            var isDoubrful = (client.passport == default || client.adress == null) ? true : false;
             var bankLimitForTransactions = bank.LimitForTransactions;
             
             bank.accounts.Add(new DebitAccount(BIC, isDoubrful, interest, fee, numbersAccount, bankLimitForTransactions));
@@ -53,17 +55,18 @@ namespace Banks
             var account = bank.accounts.Last();
                 
             bank.ConnectClientAndAccount(client,account);
-            Console.WriteLine("Для {0} {1} был создан дебетовый счёт в банке {2} с номером : {3}", client.Name, client.Surname, bank.Name, account.NumbersAccount);
+
+            return account.NumbersAccount;
         }
         
-        public static void CreateCreditAccount(string NameBank, int idClient)
+        public static long CreateCreditAccount(string nameBank, int idClient)
         {
-            var bank = FindBank(NameBank);
+            var bank = FindBank(nameBank);
             Client client = FindClient(bank, idClient);
             int BIC = bank.BIC;
             var fee = bank.Fee;
             var numbersAccount = bank.CreateRandomAccountNumbers();
-            var isDoubrful = (client.Passport is null || client.Adress is null) ? true : false;
+            var isDoubrful = (client.passport == default || client.adress == null) ? true : false;
             var bankLimitForTransactions = bank.LimitForTransactions;
             var bankCreditLimit = bank.CreditLimit;
             var bankCreditFee = bank.CreditFee;
@@ -73,18 +76,20 @@ namespace Banks
             var account = bank.accounts.Last();
                 
             bank.ConnectClientAndAccount(client,account);
-            Console.WriteLine("Для {0} {1} был создан кредитный счёт в банке {2} с номером : {3}", client.Name, client.Surname, bank.Name, account.NumbersAccount);
+
+            return account.NumbersAccount;
         }
         
         
 
-        public static void AddInformationAboutClientInTheBank(string NameBank, int idClient)
+        public static void AddInformationAboutClient(string nameBank, int idClient, string adress=null, long passport=default)
         {
-            var bank = FindBank(NameBank);
+            var bank = FindBank(nameBank);
             Client client = FindClient(bank, idClient);
             
-            client.AddInformationAboutClient();
-            var clientIsDoubtful = (client.Passport is null || client.Adress is null) ? true : false;
+            client.AddAdress(adress);
+            client.AddPassport(passport);
+            var clientIsDoubtful = (client.passport == default || client.adress == null) ? true : false;
             var accounts = bank.clientsAndAccounts
                 .FindAll(connection => connection.client == client)
                 .Select(connection => connection.account);
@@ -98,28 +103,14 @@ namespace Banks
             }
         }
         
-        private static bool CheckForDoubtful(Bank bank, int idClient)
-        {
-            var clientInfo = bank.clients[idClient];
-            
-            return (clientInfo.Passport is null || clientInfo.Adress is null) ? true : false;
-        }
+        private static bool CheckForDoubtful(Bank bank, int idClient) 
+            => ( bank.clients[idClient].passport == default ||  bank.clients[idClient].adress == null) ? true : false;
 
-        public static void ShowAllClientsOfBank(string NameBank)
-        {
-            var bank = FindBank(NameBank);
+        public static List<Client> GetAllClientsOfBank(string nameBank) => FindBank(nameBank).clients;
 
-            int i = 0;
-            foreach (var client in bank.clients)
-            {
-                ++i;
-                Console.WriteLine("{0}) {1} {2}", i, client.Name, client.Surname );
-            }
-        }
-
-        private static Bank FindBank(string NameBank)
+        private static Bank FindBank(string nameBank)
         {
-            var bank = banks.Find(bank => bank.Name == NameBank);
+            var bank = banks.Find(bank => bank.Name == nameBank);
             if (bank is null)
                 throw new ExceptionBankDoesNotExist("Такой банк не существует");
             else
@@ -128,104 +119,74 @@ namespace Banks
             }
         }
 
-        public static void CheckBalance(string NameBank)
+        public static List<(long numbers, double balance)> GetBalanceAllAccounts(string nameBank)
         {
-            var bank = FindBank(NameBank);
+            var bank = FindBank(nameBank);
+            List<(long numbers, double balance)> accountsBalance = new List<(long numbers, double balance)>();
 
             foreach (var account in bank.accounts)
             {
-                Console.WriteLine("Account: {0}, balance: {1:f2}", account.NumbersAccount, account.Balance);
+                accountsBalance.Add((account.NumbersAccount, account.Balance));
             }
+
+            return accountsBalance;
         }
 
-        public static void TopUpBalance (string NameBank)
+        public static void TopUpBalance (string bank,long numbersAccount, double money)
         {
-            var bank = FindBank(NameBank);
-            Console.WriteLine("Введите номер счёта, который вы хотите пополнить");
-            long numbersAccount = long.Parse(Console.ReadLine());
-
             var bic = numbersAccount / 100000;
             
-            var requiredBank = banks.Find(bank => bank.BIC == bic);
-            var account = requiredBank.accounts.Find(account => account.NumbersAccount == numbersAccount);
+            var reqBank = banks.Find(bank => bank.BIC == bic);
+            var account = reqBank.accounts.Find(account => account.NumbersAccount == numbersAccount);
 
-            Console.WriteLine("Сколько денег вы хотите положить на счёт ?");
-            var answer = double.Parse(Console.ReadLine());
-            
-            bank.TopUpAccount(account, answer);
+            reqBank.TopUpAccount(account, money);
         }
 
-        public static void WithDraw(string NameBank)
+        public static void WithDraw(string nameBank, long numbers, double money)
         {
-            var bank = FindBank(NameBank);
-            Console.WriteLine("Введите номер счёта с котого вы хотите списать деньги");
-            long numbersAccount = long.Parse(Console.ReadLine());
+
+            var bic = numbers / 100000;
             
-            var bic = numbersAccount / 100000;
-            
-            var requiredBank = banks.Find(bank => bank.BIC == bic);
-            var account = requiredBank.accounts.Find(account => account.NumbersAccount == numbersAccount);
-            
-            Console.WriteLine("Сколько денег вы хотите списать");
-            var answer = double.Parse(Console.ReadLine());
-            
-            
-            bank.WithDrawFromAccount(account, answer);
+            var reqBank = banks.Find(bank => bank.BIC == bic);
+            var account = reqBank.accounts.Find(account => account.NumbersAccount == numbers);
+
+            reqBank.WithDrawFromAccount(account, money);
         }
 
-        public static void Transfer(string NameBank)
+        public static void Transfer(long numbersAccountFrom, long numbersAccountTo, double money)
         {
-            var bank = FindBank(NameBank);
-            
-            Console.WriteLine("С какого счёта вы хотите перевести деньги");
-            int numbersAccountFrom = int.Parse(Console.ReadLine());
-            
-            Console.WriteLine("На какой счёт вы хотите перевести деньги");
-            int numbersAccountTo = int.Parse(Console.ReadLine());
-            
-            Console.WriteLine("Сколько денег вы хотите перевести на счёт: {0}", numbersAccountTo);
-            var money = double.Parse(Console.ReadLine());
-            
             var bicFrom = numbersAccountFrom / 100000;
-            var requiredBankFrom = banks.Find(bank => bank.BIC == bicFrom);
-            var accountFrom = requiredBankFrom.accounts.Find(account => account.NumbersAccount == numbersAccountFrom);
+            var bankFrom = banks.Find(bank => bank.BIC == bicFrom);
+            var accountFrom = bankFrom.accounts.Find(account => account.NumbersAccount == numbersAccountFrom);
             
             var bicTo = numbersAccountTo / 100000;
-            var requiredBankTo = banks.Find(bank => bank.BIC == bicTo);
-            var accountTo = requiredBankTo.accounts.Find(account => account.NumbersAccount == numbersAccountTo);
+            var bankTo = banks.Find(bank => bank.BIC == bicTo);
+            var accountTo = bankTo.accounts.Find(account => account.NumbersAccount == numbersAccountTo);
             
-            bank.Transfer(accountFrom, accountTo, money);
+            bankFrom.Transfer(accountFrom, accountTo, money);
             
             Console.WriteLine("Трансфер окончен");
-
         }
 
-        public static void ShowAllAccountsOfClient(string NameBank)
+        public static List<Account> GetAllAccountsOfClient(string nameBank, string name, string surname)
         {
-            var bank = FindBank(NameBank);
-            Console.WriteLine("Чьи счета показать ?");
-            int i = 0;
-            foreach (var client in bank.clients)
-            {
-                ++i;
-                Console.WriteLine("{0}) {1} {2}, паспорт: {3}, адресс: {4}", i, client.Name, client.Surname, client.Passport, client.Adress);
-            }
+            var bank = FindBank(nameBank);
+            var client = bank.clients.Find(client => client.name == name && client.surname == surname);
 
-            var idClient = int.Parse(Console.ReadLine());
+            var accounts = bank.clientsAndAccounts
+                .FindAll(connection => connection.client == client)
+                .Select(connection => connection.account);
 
-            var theClient = bank.clients[idClient - 1];
-
-            var accounts = bank.clientsAndAccounts.FindAll(connection => connection.client == theClient).Select(connection => connection.account);
-
-            i = 0;
+            List<Account> accountsClient = new List<Account>();
             foreach (var account in accounts)
             {
-                ++i;
-                Console.WriteLine("{0}) numbers: {1}, balance: {2}", i, account.NumbersAccount, account.Balance);
+                accountsClient.Add(account);
             }
+
+            return accountsClient;
         }
 
-        public static Client FindClient(Bank bank, int idClient)
+        private static Client FindClient(Bank bank, int idClient)
         {
             Client client;
             if (bank.clients.Count > idClient && idClient > -1)
@@ -239,15 +200,61 @@ namespace Banks
             }
         }
 
-        public static void CanceTransaction(string NameBank)
+        public static void CancleTransaction(long numbers, int transactionNumber)
         {
-            var bank = FindBank(NameBank);
+            var BIC = numbers / 100000;
+            var bank = banks.Find(bank => bank.BIC == BIC);
             
-            Console.WriteLine("Введите номер счета с которого была произведена транзакция на другой счёт");
-            var numbers = long.Parse(Console.ReadLine());
+            bank.CancleTransaction(numbers, transactionNumber);
+        }
+
+        public static void ShowAccountTransactions(long numbers)
+        {
+            var BIC = numbers / 100000;
+            var bank = banks.Find(bank => bank.BIC == BIC);
             
-            bank.CancleTransaction(numbers);
-            
+            bank.ShowTransactionOnAccount(numbers);
+        }
+
+        public static Date Date() => Banks.Date.date();
+
+        public static void ChangeTime(int days)
+        {
+            for (int i = 0; i < days; ++i)
+            {
+                var dateTest = Banks.Date.date().globalDate + TimeSpan.FromDays(1);
+                Banks.Date.date().changeTime(dateTest);
+                Calc();
+            }
+        }
+
+        public static Client GetClientInfo(string nameBank, int idClient) => FindBank(nameBank).clients[idClient];
+
+        public static Account GetAccountInfo(long numbers)
+        {
+            var bic = numbers / 100000;
+            var requiredBankFrom = banks.Find(bank => bank.BIC == bic);
+            return requiredBankFrom.accounts.Find(account => account.NumbersAccount == numbers);
+        }
+
+        public static double GetAccountBalance(long numbers)
+        {
+            var bic = numbers / 100000;
+            var requiredBankFrom = banks.Find(bank => bank.BIC == bic);
+            var account = requiredBankFrom.accounts.Find(account => account.NumbersAccount == numbers);
+
+            return account.Balance;
+        }
+
+        private static void Calc()
+        {
+            foreach (var bank in banks)
+            {
+                foreach (var account in bank.accounts)
+                {
+                    account.Calc();
+                }
+            }
         }
     }
 }

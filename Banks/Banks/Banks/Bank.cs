@@ -8,12 +8,12 @@ namespace Banks
         private static List<(Account accountFrom, Account accountTo, double WithDrawMoney, double TopUpMoney)> _logs 
             = new List<(Account accountFrom, Account accountTo, double WithDrawMoney, double TopUpMoney)>();
         
-        public abstract string Name { get; }
-        public abstract double LimitForTransactions { get; }
+        public abstract string Name { get; protected set; }
+        public abstract double LimitForTransactions { get; protected set; }
         public abstract double Fee { get; protected set; }
         public abstract double CreditFee { get; protected set; }
         public abstract double CreditLimit { get; protected set; }
-        public abstract int BIC { get; }
+        public abstract int BIC { get; protected set; }
         private List<Client> _clients = new List<Client>();
         private List<Account> _accounts = new List<Account>();
         private List<(Client client, Account account)> _clientsAndAccounts = new List<(Client client, Account account)>();
@@ -140,14 +140,28 @@ namespace Banks
         {
             _logs.Add((accountFrom, accountTo, WithDrawMoney, TopUpMoney));
         }
-        public void CancleTransaction(long numbers)
+        public void CancleTransaction(long numbers, int transactionNumber)
         {
 
             var logsAccount = _logs.FindAll(log => log.accountFrom.NumbersAccount == numbers);
             if(logsAccount is null)
                 throw new ExceptionAccountDoesNotExist("Счет не найден");
 
-            Console.WriteLine("Какую транзакцию вы хотите отменить?");
+            if(logsAccount.Count < transactionNumber)
+                throw new ExceptionWrongTransactionNumber("Номер транзакции не найден");
+            
+            var canceledTransaction = logsAccount[transactionNumber];
+
+            canceledTransaction.accountFrom.CancelWithDraw(canceledTransaction.WithDrawMoney);
+            canceledTransaction.accountTo.CancelTopUp(canceledTransaction.TopUpMoney);
+        }
+
+        public void ShowTransactionOnAccount(long numbers)
+        {
+            var logsAccount = _logs.FindAll(log => log.accountFrom.NumbersAccount == numbers);
+            if(logsAccount is null)
+                throw new ExceptionAccountDoesNotExist("Счет не найден");
+            
             int i = 0;
             foreach (var log in logsAccount)
             {
@@ -155,14 +169,7 @@ namespace Banks
                 Console.WriteLine("{0}) numbersFrom: {1} , numbersTo: {2} , withdraw: {3:f2} , topup: {4:f2}", 
                     i, log.accountFrom.NumbersAccount, log.accountTo.NumbersAccount, log.WithDrawMoney, log.TopUpMoney);
             }
-
-            var answer = int.Parse(Console.ReadLine());
-            --answer;
-
-            var canceledTransaction = logsAccount[answer];
-
-            canceledTransaction.accountFrom.CancelWithDraw(canceledTransaction.WithDrawMoney);
-            canceledTransaction.accountTo.CancelTopUp(canceledTransaction.TopUpMoney);
         }
+        
     }
 }

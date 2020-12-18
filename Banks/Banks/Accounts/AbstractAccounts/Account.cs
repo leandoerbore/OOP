@@ -2,7 +2,7 @@
 
 namespace Banks
 {
-    public abstract class Account
+    public abstract class Account 
     {
         public double BankLimitForTransactions { get; protected set; }
         public double LimitForTransactionsLeft { get; set; }
@@ -25,22 +25,17 @@ namespace Banks
             LimitForTransactionsLeft = bankLimitForTransactions;
         }
 
-        public void TopUpBalance(double money)
-        {
-            Balance += money;
-        }
+        public void TopUpBalance(double money) => Balance += money;
 
         public abstract void WithDraw(double money);
 
-        public void CancelTopUp(double money)
-        {
-            Balance -= money;
-        }
+        public void CancelTopUp(double money) => Balance -= money;
+        public void CancelWithDraw(double money) => Balance += money;
+        
 
-        public void CancelWithDraw(double money)
+        public virtual void Calc()
         {
-            Balance += money;
+            throw new NotImplementedException();
         }
-
     }
 }
