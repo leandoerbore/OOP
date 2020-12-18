@@ -14,7 +14,7 @@ namespace Banks
 
         public TinkoffBank()
         {
-            conditions = new List<(int firstInterval, int secondInterval, double interest)>(){(30000, 50000, 3),(50001, 100000, 3.5), (100000,100000000, 4)};
+            conditions = new List<(int firstInterval, int secondInterval, double interest)>(){(0, 50000, 3),(50001, 100000, 3.5), (100000,100000000, 4)};
         }
     }
 }

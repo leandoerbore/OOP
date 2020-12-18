@@ -16,29 +16,26 @@ namespace Banks
             BankCreditLimit = creditLimit;
             BankCreditFee = creditFee;
             creationTimeLimit = DateTime.Now.Date;
-            TimeLimit();
         }
 
         private void TimeLimit()
         {
-            while (true)
+            if (Date.date().globalDate - creationTimeLimit == TimeSpan.FromDays(30))
             {
-                if (Date.date().globalDate - creationTimeLimit == TimeSpan.FromDays(30))
+                if (IsDoubtful)
                 {
-                    if (IsDoubtful)
-                    {
-                        LimitForTransactionsLeft = BankLimitForTransactions;
-                        Console.WriteLine("Ваш кредитный лимит обновился");
-                    }
-
-                    if (Balance < (BankCreditLimit / 2))
-                    {
-                        Balance = Balance + (Balance + BankCreditLimit) * BankCreditFee / 100;
-                    }
+                    LimitForTransactionsLeft = BankLimitForTransactions;
+                    Console.WriteLine("Ваш кредитный лимит обновился");
                 }
-                Thread.Sleep(1000);
+
+                if (Balance < (BankCreditLimit / 2))
+                {
+                    Balance = Balance + (Balance + BankCreditLimit) * BankCreditFee / 100;
+                }
             }
         }
+
+        public override void Calc() => TimeLimit();
 
         public override void WithDraw(double money)
         {
@@ -77,6 +74,7 @@ namespace Banks
                 }
             }
         }
+        
 
     }
 }

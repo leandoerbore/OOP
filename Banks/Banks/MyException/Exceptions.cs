@@ -36,6 +36,11 @@ namespace Banks
     {
         public ExceptionWrongTransactionNumber(string message) : base(message) {}
     }
+
+    public class ExceptionLimit : Exception
+    {
+        public ExceptionLimit(string message) : base(message){}
+    }
     
     
 }

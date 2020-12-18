@@ -25,22 +25,17 @@ namespace Banks
 
         protected override void InterestCalc()
         {
-            while (true)
+            CalcForDay();
+            if (itterationForInterest >= 30)
             {
-                CalcForDay();
-                if (itterationForInterest >= 30)
+                Balance += _interestBalance;
+                _interestBalance = 0;
+                itterationForInterest = 0;
+                //Console.WriteLine("Баланс на счете {0} пополнился: {1:f2}", NumbersAccount, Balance);
+                if (IsDoubtful)
                 {
-                    Balance += _interestBalance;
-                    _interestBalance = 0;
-                    itterationForInterest = 0;
-                    //Console.WriteLine("Баланс на счете {0} пополнился: {1:f2}", NumbersAccount, Balance);
-                    if (IsDoubtful)
-                    {
-                        LimitForTransactionsLeft = BankLimitForTransactions;
-                    }
+                    LimitForTransactionsLeft = BankLimitForTransactions;
                 }
-
-                Thread.Sleep(10);
             }
         }
 
@@ -66,8 +61,7 @@ namespace Banks
                     {
                         DaysForAccess -= 1;
                     }
-
-                    Console.WriteLine("На депозитном счёте {0} InterestBalance: {1:f2}", NumbersAccount, _interestBalance);
+                    //Console.WriteLine("На депозитном счёте {0} InterestBalance: {1:f2}", NumbersAccount, _interestBalance);
                 }
 
             }
@@ -99,7 +93,7 @@ namespace Banks
                         {
                             Console.WriteLine("Ваш лимит превышен за месяц");
                             Console.WriteLine("Ваш оставшийся лимит на транзакции: {0:f2}", LimitForTransactionsLeft);
-                            throw new ExceptionNotEnoughMoney("Недостаточно средств");
+                            throw new ExceptionLimit("Превышен лимит");
                         }
                         Balance -= money;
                     }

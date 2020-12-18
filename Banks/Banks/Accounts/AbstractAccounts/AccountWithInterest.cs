@@ -20,5 +20,7 @@ namespace Banks
         {
             
         }
+
+        public override void Calc() => InterestCalc();
     }
 }

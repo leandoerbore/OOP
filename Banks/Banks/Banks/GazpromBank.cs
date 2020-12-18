@@ -13,7 +13,7 @@ namespace Banks
 
         public GazpromBank()
         {
-            conditions = new List<(int firstInterval, int secondInterval, double interest)>(){(10000, 30000, 2),(30001, 60000, 3), (60001,100000000, 4)};
+            conditions = new List<(int firstInterval, int secondInterval, double interest)>(){(0, 30000, 2),(30001, 60000, 3), (60001,100000000, 4)};
         }
     }
 }

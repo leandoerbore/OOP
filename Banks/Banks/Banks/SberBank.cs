@@ -14,7 +14,7 @@ namespace Banks
 
         public SberBank()
         {
-            conditions = new List<(int firstInterval, int secondInterval, double interest)>(){(10000, 40000, 2),(40001, 90000, 3), (90001, 10000000, 3.5)};
+            conditions = new List<(int firstInterval, int secondInterval, double interest)>(){(0, 40000, 2),(40001, 90000, 3), (90001, 10000000, 3.5)};
         }
     }
 }

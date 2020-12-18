@@ -18,14 +18,8 @@ namespace Banks
             this.passport = passport;
         }
 
-        public void AddAdress(string adress)
-        {
-            adress = adress;
-        }
+        public void AddAdress(string adress) => this.adress = adress;
 
-        public void AddPassport(long passport)
-        {
-            passport = passport;
-        }
+        public void AddPassport(long passport) => this.passport = passport;
     }
 }
